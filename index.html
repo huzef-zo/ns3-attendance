@@ -134,22 +134,24 @@ main{padding:0 16px}
 .cls{padding:14px 14px 12px}
 .cls[data-state="A"]{box-shadow:inset 3px 0 0 var(--ok-fill)}
 .cls[data-state="M"]{box-shadow:inset 3px 0 0 var(--bad-fill)}
+.cls[data-state="N"]{box-shadow:inset 3px 0 0 var(--dim)}
 .cls-top{display:flex;align-items:center;gap:8px}
 .per{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--text);background:var(--surface-2);padding:3px 8px;border-radius:7px}
 .badge{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);border:1px solid var(--border);padding:3px 8px;border-radius:999px}
 .code{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.06em}
 .cls-name{font-size:16.5px;font-weight:700;letter-spacing:-.01em;margin:9px 0 12px}
-.cls-actions{display:flex;gap:10px}
+.cls-actions{display:flex;gap:6px}
 .mark-btn{
-  flex:1;min-height:52px;border:1.5px solid var(--border);border-radius:var(--radius-s);
-  display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  font-weight:700;font-size:15px;color:var(--dim);
+  flex:1;min-height:48px;border:1.5px solid var(--border);border-radius:var(--radius-s);
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-weight:700;font-size:13.5px;color:var(--dim);
   transition:transform .12s,background .16s,color .16s,border-color .16s;
 }
 .mark-btn:active{transform:scale(.96)}
-.mark-btn .ic{width:20px;height:20px}
+.mark-btn .ic{width:18px;height:18px}
 .mark-btn.att.on{background:var(--ok-fill);border-color:var(--ok-fill);color:var(--ok-ink)}
 .mark-btn.miss.on{background:var(--bad-fill);border-color:var(--bad-fill);color:var(--bad-ink)}
+.mark-btn.noclass.on{background:var(--surface-2);border-color:var(--dim);color:var(--text)}
 .tally{font-size:12.5px;color:var(--faint);font-family:var(--mono)}
 .empty{text-align:center;padding:38px 16px 30px}
 .empty h3{font-family:var(--display);font-size:30px;margin:6px 0 4px}
@@ -172,7 +174,7 @@ main{padding:0 16px}
 .t-ok{color:var(--ok)} .t-bad{color:var(--bad)}
 .stack{display:flex;gap:2px;height:8px;border-radius:99px;overflow:hidden;background:var(--surface-2);margin-top:8px}
 .stack i{display:block;height:100%;transition:width .4s ease}
-.s-att{background:var(--ok-fill)} .s-miss{background:var(--bad-fill)}
+.s-att{background:var(--ok-fill)} .s-miss{background:var(--bad-fill)} .s-noclass{background:var(--faint)}
 .day{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2px 14px}
 .day-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
 .day.is-hol .day-head{border-bottom-color:transparent}
@@ -183,12 +185,13 @@ main{padding:0 16px}
 .brow:last-child{border-bottom:0}
 .brow[data-state="A"]{background:var(--ok-bg);box-shadow:inset 3px 0 0 var(--ok-fill);margin:0 -14px;padding:9px 14px}
 .brow[data-state="M"]{background:var(--bad-bg);box-shadow:inset 3px 0 0 var(--bad-fill);margin:0 -14px;padding:9px 14px}
+.brow[data-state="N"]{background:var(--surface-2);box-shadow:inset 3px 0 0 var(--dim);margin:0 -14px;padding:9px 14px}
 .b-left{width:76px;flex:none}
 .b-left .per{display:inline-block;font-size:11.5px;padding:2px 7px;margin-bottom:3px}
 .b-left .badge{font-size:9.5px;padding:2px 6px}
 .b-name{flex:1;min-width:0;font-weight:600;font-size:14px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.b-btns{display:flex;gap:8px;flex:none}
-.b-btns .mark-btn{flex:0 0 48px;min-height:48px;padding:0}
+.b-btns{display:flex;gap:6px;flex:none}
+.b-btns .mark-btn{flex:0 0 42px;min-height:42px;padding:0}
 
 /* ============ Dashboard ============ */
 .hero{text-align:center;padding:8px 0 4px}
@@ -352,6 +355,7 @@ const ICONS = {
   trash:   '<path d="M4.5 6.5h15M9.5 6.5v-2h5v2M7 6.5l.7 13h8.6l.7-13M10.3 10.5v5.5M13.7 10.5v5.5"/>',
   slash:   '<circle cx="12" cy="12" r="8.5"/><path d="M6 6.7l12 10.6"/>',
   alert:   '<path d="M12 3.8L2.6 20h18.8L12 3.8z"/><path d="M12 10v4.3M12 17.1v.2"/>',
+  minus:   '<path d="M5 12h14"/>',
 };
 const icon = (n, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
 
@@ -403,7 +407,7 @@ function sanitizeRecords(raw) {
     let marks = 0;
     if (v.marks && typeof v.marks === 'object') {
       for (const [bk, mv] of Object.entries(v.marks)) {
-        if (mv === 'A' || mv === 'M') { (r.marks || (r.marks = {}))[bk] = mv; marks++; }
+        if (mv === 'A' || mv === 'M' || mv === 'N') { (r.marks || (r.marks = {}))[bk] = mv; marks++; }
       }
     }
     if (r.holiday || marks) out[k] = r;
@@ -458,8 +462,8 @@ function computeStats() {
   const limit = now < end ? now : end;
   const perWeek = {};
   SCHEDULE.forEach(blocks => blocks.forEach(b => { perWeek[b.c] = (perWeek[b.c] || 0) + unitCount(b); }));
-  const courses = {}; Object.keys(COURSES).forEach(id => courses[id] = { held: 0, att: 0, miss: 0 });
-  const total = { held: 0, att: 0, miss: 0 };
+  const courses = {}; Object.keys(COURSES).forEach(id => courses[id] = { held: 0, att: 0, miss: 0, noclass: 0 });
+  const total = { held: 0, att: 0, miss: 0, noclass: 0 };
   if (limit >= start) {
     for (let i = 0; ; i++) {
       const d = addDays(start, i);
@@ -470,10 +474,14 @@ function computeStats() {
       if (rec && rec.holiday) continue;
       for (const b of SCHEDULE[dw]) {
         const u = unitCount(b), c = courses[b.c];
-        c.held += u; total.held += u;
         const m = rec && rec.marks ? rec.marks[bKey(dw, b)] : null;
-        if (m === 'A') { c.att += u; total.att += u; }
-        else if (m === 'M') { c.miss += u; total.miss += u; }
+        if (m === 'N') {
+          c.noclass += u; total.noclass += u;
+        } else {
+          c.held += u; total.held += u;
+          if (m === 'A') { c.att += u; total.att += u; }
+          else if (m === 'M') { c.miss += u; total.miss += u; }
+        }
       }
     }
   }
@@ -496,7 +504,7 @@ function statusOf(p) {
 /* Per-week tally used by the Week view summary. */
 function weekSummary(w) {
   const start = addDays(semStart(), (w - 1) * 7);
-  const out = { att: 0, miss: 0, unlogged: 0, hol: 0, units: 0 };
+  const out = { att: 0, miss: 0, noclass: 0, unlogged: 0, hol: 0, units: 0 };
   for (let i = 0; i < 7; i++) {
     const d = addDays(start, i), dw = dowMon(d);
     if (dw > 4) continue;
@@ -505,7 +513,10 @@ function weekSummary(w) {
     for (const b of SCHEDULE[dw]) {
       const u = unitCount(b); out.units += u;
       const m = rec && rec.marks ? rec.marks[bKey(dw, b)] : null;
-      if (m === 'A') out.att += u; else if (m === 'M') out.miss += u; else out.unlogged += u;
+      if (m === 'A') out.att += u;
+      else if (m === 'M') out.miss += u;
+      else if (m === 'N') out.noclass += u;
+      else out.unlogged += u;
     }
   }
   return out;
@@ -592,6 +603,7 @@ function renderToday() {
             <div class="cls-actions">
               <button class="mark-btn att ${st === 'A' ? 'on' : ''}" data-action="mark" data-date="${key}" data-block="${k}" data-val="A" aria-pressed="${st === 'A'}">${icon('check')}Attended</button>
               <button class="mark-btn miss ${st === 'M' ? 'on' : ''}" data-action="mark" data-date="${key}" data-block="${k}" data-val="M" aria-pressed="${st === 'M'}">${icon('x')}Missed</button>
+              <button class="mark-btn noclass ${st === 'N' ? 'on' : ''}" data-action="mark" data-date="${key}" data-block="${k}" data-val="N" aria-pressed="${st === 'N'}">${icon('minus')}No Class</button>
             </div>
           </article>`;
         }).join('')
@@ -673,6 +685,7 @@ function daySection(d) {
           <div class="b-btns">
             <button class="mark-btn att ${st === 'A' ? 'on' : ''}" data-action="mark" data-date="${key}" data-block="${k}" data-val="A" aria-label="Mark ${esc(COURSES[b.c].name)} attended" aria-pressed="${st === 'A'}">${icon('check')}</button>
             <button class="mark-btn miss ${st === 'M' ? 'on' : ''}" data-action="mark" data-date="${key}" data-block="${k}" data-val="M" aria-label="Mark ${esc(COURSES[b.c].name)} missed" aria-pressed="${st === 'M'}">${icon('x')}</button>
+            <button class="mark-btn noclass ${st === 'N' ? 'on' : ''}" data-action="mark" data-date="${key}" data-block="${k}" data-val="N" aria-label="Mark ${esc(COURSES[b.c].name)} no class" aria-pressed="${st === 'N'}">${icon('minus')}</button>
           </div>
         </div>`;
       }).join('');
@@ -693,10 +706,11 @@ function weekSummaryHTML() {
     <div class="wstats">
       <div class="wstat"><b class="t-ok">${s.att}</b><span>attended</span></div>
       <div class="wstat"><b class="t-bad">${s.miss}</b><span>missed</span></div>
+      <div class="wstat"><b>${s.noclass}</b><span>no class</span></div>
       <div class="wstat"><b>${s.unlogged}</b><span>not logged</span></div>
       ${s.hol ? `<div class="wstat"><b>${s.hol}</b><span>holidays</span></div>` : ''}
     </div>
-    ${s.units ? `<div class="stack"><i class="s-att" style="width:${(s.att / total * 100).toFixed(1)}%"></i><i class="s-miss" style="width:${(s.miss / total * 100).toFixed(1)}%"></i></div>` : ''}`;
+    ${s.units ? `<div class="stack"><i class="s-att" style="width:${(s.att / total * 100).toFixed(1)}%"></i><i class="s-miss" style="width:${(s.miss / total * 100).toFixed(1)}%"></i><i class="s-noclass" style="width:${(s.noclass / total * 100).toFixed(1)}%"></i></div>` : ''}`;
 }
 
 /* =====================================================================
@@ -746,7 +760,7 @@ function renderDash() {
   const req = settings.requiredPct;
   const pct = s.total.held ? s.total.att / s.total.held * 100 : null;
   const perWeekTotal = Object.values(s.perWeek).reduce((a, b) => a + b, 0);
-  const all = absLeft(s.total.held, s.total.att, perWeekTotal * settings.weeks);
+  const all = absLeft(s.total.held, s.total.att, perWeekTotal * settings.weeks - s.total.noclass);
   const unlog = s.total.held - s.total.att - s.total.miss;
   const heroAbsCls = all.left < 0 ? 'b' : (all.left <= 2 && s.total.held > 0 ? 'w' : '');
   const absNum = all.left < 0 ? '\u2212' + (-all.left) : all.left;
@@ -755,13 +769,13 @@ function renderDash() {
     const c = s.courses[id];
     const p = c.held ? c.att / c.held * 100 : null;
     const pw = s.perWeek[id] || 0;
-    const a = absLeft(c.held, c.att, pw * settings.weeks);
+    const a = absLeft(c.held, c.att, pw * settings.weeks - c.noclass);
     const un = c.held - c.att - c.miss;
     const chip = a.left < 0
       ? `<span class="chip c-bad">${icon('alert')}over by ${-a.left}</span>`
       : a.left <= 2 ? `<span class="chip c-warn">${icon('alert')}only ${a.left} left</span>` : '';
-    const meta = c.held
-      ? `Held ${c.held} · Attended ${c.att} · Missed ${c.miss}${un > 0 ? ` <span class="faint">· ${un} not logged</span>` : ''}`
+    const meta = (c.held || c.noclass)
+      ? `Held ${c.held} · Attended ${c.att} · Missed ${c.miss}${c.noclass > 0 ? ` · ${c.noclass} no class` : ''}${un > 0 ? ` <span class="faint">· ${un} not logged</span>` : ''}`
       : `No classes held yet`;
     const st = statusOf(p);
     return `
@@ -784,8 +798,8 @@ function renderDash() {
       <p class="kicker">Overall attendance</p>
       ${ringHTML(pct, req)}
       <p class="hero-line">${s.total.held
-        ? `Attended <b>${s.total.att}</b> of <b>${s.total.held}</b> ${unit} held${unlog > 0 ? ` <span class="faint">· ${unlog} not logged</span>` : ''}`
-        : emptyHeldLine()}</p>
+        ? `Attended <b>${s.total.att}</b> of <b>${s.total.held}</b> ${unit} held${unlog > 0 ? ` <span class="faint">· ${unlog} not logged</span>` : ''}${s.total.noclass > 0 ? ` <span class="faint">· ${s.total.noclass} no class</span>` : ''}`
+        : (s.total.noclass > 0 ? `0 ${unit} held <span class="faint">· ${s.total.noclass} no class</span>` : emptyHeldLine())}</p>
       <p class="hero-line faint">Required ${req}% (the tick on the ring) · green ${req + 5}%+ · amber ${req}–${req + 5}% · red below</p>
       <div class="abs-hero ${heroAbsCls}">
         <span class="lbl">Absences left</span><span class="n">${absNum}</span><span class="lbl">of ${all.allowed}</span>
