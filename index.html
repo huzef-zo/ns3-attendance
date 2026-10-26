@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NS-3 Attendance — Hawassa University</title>
+<meta name="description" content="Offline attendance tracker for Natural Science NS-3, Group 1 — Hawassa University.">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#151310">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3eee3">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NS-3 Attendance">
+<!-- Manifest href + icons are generated at runtime so this single file is self-contained -->
+<link rel="manifest" id="manifestLink">
+<link rel="icon" id="favicon">
+<link rel="apple-touch-icon" id="touchIcon">
+<style>
+/* ============ Theme tokens ============ */
+:root{
+  color-scheme: dark;
+  --bg:#151310; --surface:#1e1b17; --surface-2:#292420; --border:#37312a;
+  --text:#ede8de; --dim:#a89e8e; --faint:#776e5f;
+  --glass:rgba(21,19,16,.88);
+  /* accent + status fills are fixed across themes (bright fill + dark ink) */
+  --accent:#f2a83f; --accent-fill:#f2a83f; --accent-ink:#251a08;
+  --ok:#46c17e;   --ok-fill:#3fbf7d;   --ok-ink:#04220f;
+  --bad:#f0694e;  --bad-fill:#ee6a52;  --bad-ink:#360b03;
+  --warn:#e3b04c; --warn-fill:#e0ad3f;
+  --ok-bg:rgba(63,191,125,.13); --bad-bg:rgba(238,106,82,.13); --warn-bg:rgba(227,176,76,.13);
+  --radius:16px; --radius-s:12px;
+  --mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI Variable Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --display:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+}
+@media (prefers-color-scheme: light){
+  :root{
+    color-scheme: light;
+    --bg:#f3eee3; --surface:#fbf8f0; --surface-2:#ece5d5; --border:#ddd3bf;
+    --text:#2b251c; --dim:#6e6555; --faint:#9c9280;
+    --glass:rgba(243,238,227,.9);
+    --accent:#96620a; --ok:#187a4e; --bad:#c13e29; --warn:#8a6210;
+    --ok-bg:rgba(24,122,78,.1); --bad-bg:rgba(193,62,41,.1); --warn-bg:rgba(138,98,16,.12);
+  }
+}
+
+/* ============ Base ============ */
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg)}
+body{
+  background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.45;
+  min-height:100dvh;max-width:540px;margin:0 auto;
+  padding-bottom:calc(78px + env(safe-area-inset-bottom));
+  -webkit-font-smoothing:antialiased;
+}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button:disabled{opacity:.35;cursor:default}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.faint{color:var(--faint)}
+.kicker{font-size:11.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+
+/* ============ App bar ============ */
+.appbar{
+  position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:calc(8px + env(safe-area-inset-top)) 16px 10px;
+  background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.mark{width:30px;height:30px;flex:none}
+.brand h1{font-family:var(--display);font-size:21px;font-weight:700;letter-spacing:-.01em;line-height:1.1}
+.brand .sub{font-size:11px;color:var(--dim);letter-spacing:.04em;margin-top:2px}
+.week-chip{
+  display:inline-flex;align-items:center;min-height:48px;padding:0 14px;border-radius:999px;
+  font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent);
+  border:1px solid var(--border);background:var(--surface);flex:none;
+}
+
+/* ============ Bottom tabs ============ */
+.tabs{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:540px;z-index:30;
+  display:flex;background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);
+}
+.tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  min-height:60px;color:var(--faint);font-size:11px;font-weight:600;position:relative;
+}
+.tab.on{color:var(--accent)}
+.tab.on::before{content:'';position:absolute;top:0;width:24px;height:3px;border-radius:0 0 3px 3px;background:var(--accent)}
+
+/* ============ Views ============ */
+main{padding:0 16px}
+.vin{animation:viewIn .24s ease both}
+.vin>*+*{margin-top:12px}
+@keyframes viewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ============ Shared bits ============ */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 16px 14px}
+.note{display:flex;gap:10px;align-items:flex-start;background:var(--warn-bg);border-left:3px solid var(--warn);border-radius:10px;padding:11px 12px;font-size:13px;color:var(--dim)}
+.note .ic{width:18px;height:18px;margin-top:1px;color:var(--warn)}
+.bar{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;transition:width .6s cubic-bezier(.3,.7,.3,1)}
+.f-ok{background:var(--ok-fill)} .f-warn{background:var(--warn-fill)} .f-bad{background:var(--bad-fill)}
+.p-ok{color:var(--ok)} .p-warn{color:var(--warn)} .p-bad{color:var(--bad)}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.chip .ic{width:14px;height:14px;stroke-width:2.4}
+.c-warn{background:var(--warn-bg);color:var(--warn)}
+.c-bad{background:var(--bad-bg);color:var(--bad)}
+.icon-btn{width:48px;min-height:48px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);background:var(--surface);border-radius:var(--radius-s);color:var(--dim);transition:transform .12s}
+.icon-btn:active{transform:scale(.94)}
+.chip-btn{min-height:48px;padding:0 14px;border:1px solid var(--accent);color:var(--accent);border-radius:var(--radius-s);font-weight:700;font-size:13px}
+
+/* ============ Today view ============ */
+.date-head .kicker{color:var(--dim)}
+.date-head h2{font-family:var(--display);font-size:27px;font-weight:700;letter-spacing:-.01em;margin-top:2px}
+.date-nav{display:flex;gap:8px;align-items:stretch}
+.date-nav input[type=date]{
+  flex:1;min-width:0;min-height:48px;background:var(--surface);border:1px solid var(--border);color:var(--text);
+  border-radius:var(--radius-s);padding:0 12px;font-family:var(--mono);font-size:14px;
+}
+.hol-card{display:flex;align-items:center;gap:12px;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px}
+.hol-card.is-hol{border-color:var(--warn);background:var(--warn-bg)}
+.hol-info{display:flex;gap:10px;align-items:center;min-width:0}
+.hol-info .ic{color:var(--warn)}
+.hol-info b{font-size:14.5px;display:block}
+.hol-info span{font-size:12px;color:var(--dim)}
+.hol-btn{display:inline-flex;align-items:center;gap:7px;min-height:48px;padding:0 14px;border:1px solid var(--border);border-radius:999px;font-weight:700;font-size:13px;color:var(--dim);flex:none;transition:transform .12s}
+.hol-btn:active{transform:scale(.95)}
+.hol-btn.on{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
+.hol-btn .ic{width:17px;height:17px}
+.cls{padding:14px 14px 12px}
+.cls[data-state="A"]{box-shadow:inset 3px 0 0 var(--ok-fill)}
+.cls[data-state="M"]{box-shadow:inset 3px 0 0 var(--bad-fill)}
+.cls-top{display:flex;align-items:center;gap:8px}
+.per{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--text);background:var(--surface-2);padding:3px 8px;border-radius:7px}
+.badge{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);border:1px solid var(--border);padding:3px 8px;border-radius:999px}
+.code{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.06em}
+.cls-name{font-size:16.5px;font-weight:700;letter-spacing:-.01em;margin:9px 0 12px}
+.cls-actions{display:flex;gap:10px}
+.mark-btn{
+  flex:1;min-height:52px;border:1.5px solid var(--border);border-radius:var(--radius-s);
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-weight:700;font-size:15px;color:var(--dim);
+  transition:transform .12s,background .16s,color .16s,border-color .16s;
+}
+.mark-btn:active{transform:scale(.96)}
+.mark-btn .ic{width:20px;height:20px}
+.mark-btn.att.on{background:var(--ok-fill);border-color:var(--ok-fill);color:var(--ok-ink)}
+.mark-btn.miss.on{background:var(--bad-fill);border-color:var(--bad-fill);color:var(--bad-ink)}
+.tally{font-size:12.5px;color:var(--faint);font-family:var(--mono)}
+.empty{text-align:center;padding:38px 16px 30px}
+.empty h3{font-family:var(--display);font-size:30px;margin:6px 0 4px}
+.empty p{color:var(--dim);font-size:14px}
+
+/* ============ Week view ============ */
+.week-head h2{font-family:var(--display);font-size:24px;margin-top:2px}
+.week-ctrl{display:flex;gap:8px;align-items:stretch}
+.sel-wrap{position:relative;flex:1;min-width:0}
+.sel-wrap select{
+  width:100%;min-height:48px;appearance:none;-webkit-appearance:none;background:var(--surface);
+  border:1px solid var(--border);color:var(--text);border-radius:var(--radius-s);
+  padding:0 34px 0 12px;font-weight:700;font-size:14px;
+}
+.sel-wrap .ic{position:absolute;right:10px;top:50%;width:18px;height:18px;color:var(--dim);pointer-events:none;transform:translateY(-50%) rotate(90deg)}
+.wstats{display:flex;gap:6px}
+.wstat{flex:1;text-align:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-s);padding:10px 4px}
+.wstat b{display:block;font-family:var(--mono);font-size:18px}
+.wstat span{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
+.t-ok{color:var(--ok)} .t-bad{color:var(--bad)}
+.stack{display:flex;gap:2px;height:8px;border-radius:99px;overflow:hidden;background:var(--surface-2);margin-top:8px}
+.stack i{display:block;height:100%;transition:width .4s ease}
+.s-att{background:var(--ok-fill)} .s-miss{background:var(--bad-fill)}
+.day{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2px 14px}
+.day-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.day.is-hol .day-head{border-bottom-color:transparent}
+.day-name{font-weight:700;font-size:14.5px}
+.day-date{font-size:12px;color:var(--faint);font-family:var(--mono);margin-left:7px}
+.day-note{padding:10px 0;font-size:13px;color:var(--warn)}
+.brow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.brow:last-child{border-bottom:0}
+.brow[data-state="A"]{background:var(--ok-bg);box-shadow:inset 3px 0 0 var(--ok-fill);margin:0 -14px;padding:9px 14px}
+.brow[data-state="M"]{background:var(--bad-bg);box-shadow:inset 3px 0 0 var(--bad-fill);margin:0 -14px;padding:9px 14px}
+.b-left{width:76px;flex:none}
+.b-left .per{display:inline-block;font-size:11.5px;padding:2px 7px;margin-bottom:3px}
+.b-left .badge{font-size:9.5px;padding:2px 6px}
+.b-name{flex:1;min-width:0;font-weight:600;font-size:14px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.b-btns{display:flex;gap:8px;flex:none}
+.b-btns .mark-btn{flex:0 0 48px;min-height:48px;padding:0}
+
+/* ============ Dashboard ============ */
+.hero{text-align:center;padding:8px 0 4px}
+.hero .kicker{color:var(--dim)}
+.ring-wrap{position:relative;width:172px;margin:16px auto 10px}
+.ring{display:block;width:100%;height:auto}
+.ring-track{stroke:var(--surface-2)}
+.ring-fg{transition:stroke-dashoffset .7s cubic-bezier(.3,.7,.3,1)}
+.ring-fg.r-ok{stroke:var(--ok-fill)} .ring-fg.r-warn{stroke:var(--warn-fill)}
+.ring-fg.r-bad{stroke:var(--bad-fill)} .ring-fg.r-none{stroke:var(--faint)}
+.ring-tick{stroke:var(--faint);stroke-width:2.5;stroke-linecap:round}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-pct{font-family:var(--mono);font-size:32px;font-weight:700;letter-spacing:-.03em}
+.ring-sub{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.hero-line{font-size:14px;color:var(--dim);margin-top:6px}
+.hero-line b{color:var(--text);font-family:var(--mono)}
+.hero-line.faint{font-size:12.5px;color:var(--faint)}
+.abs-hero{display:flex;align-items:center;gap:10px;justify-content:center;margin-top:16px;padding:10px 18px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+.abs-hero .n{font-family:var(--mono);font-size:24px;font-weight:700}
+.abs-hero .lbl{font-size:13px;color:var(--dim)}
+.abs-hero.w{border-color:var(--warn);background:var(--warn-bg)} .abs-hero.w .n{color:var(--warn)}
+.abs-hero.b{border-color:var(--bad);background:var(--bad-bg)} .abs-hero.b .n{color:var(--bad)}
+.hero-mode{font-size:12.5px;color:var(--faint);margin-top:10px}
+.list-title{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);padding:4px 2px 0}
+.sheet{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.crow{padding:14px 16px 13px;border-bottom:1px solid var(--border)}
+.crow:last-child{border-bottom:0}
+.crow-top{display:flex;align-items:center;gap:9px}
+.crow .code{margin:0;color:var(--accent);border:1px solid var(--border);padding:2px 6px;border-radius:6px}
+.crow-top h3{flex:1;min-width:0;font-size:15px;font-weight:700;line-height:1.25}
+.crow-top .pct{font-family:var(--mono);font-size:15px;font-weight:700;flex:none}
+.crow-meta{font-size:12.5px;color:var(--dim);margin:6px 0 8px;font-family:var(--mono)}
+.crow-abs{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;font-size:13px;color:var(--dim)}
+
+/* ============ Settings ============ */
+.sec-t{font-size:16.5px;font-weight:700;letter-spacing:-.01em}
+.sec-sub{font-size:11.5px;color:var(--faint);margin:14px 0 7px;text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+.hint{font-size:12.5px;color:var(--dim);margin-top:10px;line-height:1.5}
+.seg{display:flex;gap:6px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-s);padding:5px}
+.seg button{flex:1;min-height:44px;border-radius:9px;font-weight:600;font-size:13.5px;color:var(--dim);transition:background .15s,color .15s}
+.seg button[aria-pressed="true"]{background:var(--accent-fill);color:var(--accent-ink);font-weight:700}
+.field{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.field:last-of-type{border-bottom:0}
+.field>span{font-size:14px;font-weight:600}
+.field small{display:block;font-weight:400;color:var(--faint);font-size:11.5px;margin-top:1px}
+.field input{
+  min-height:48px;background:var(--surface-2);border:1px solid var(--border);color:var(--text);
+  border-radius:var(--radius-s);padding:0 10px;font-family:var(--mono);font-size:14px;width:132px;text-align:center;
+}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 16px;border:1px solid var(--border);background:var(--surface);border-radius:var(--radius-s);font-weight:700;font-size:14px;color:var(--text);transition:transform .12s}
+.btn:active{transform:scale(.97)}
+.btn .ic{width:19px;height:19px}
+.btn-row{display:flex;gap:10px;margin-top:12px}
+.btn-row .btn{flex:1}
+.btn.wide{width:100%;margin-top:10px}
+.btn-danger{color:var(--bad);border-color:var(--bad);background:transparent}
+.btn-accent{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
+.btn-danger-fill{background:var(--bad-fill);border-color:var(--bad-fill);color:var(--bad-ink)}
+
+/* ============ Toast & modal ============ */
+.toast{
+  position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translate(-50%,10px);
+  opacity:0;z-index:60;background:var(--surface-2);border:1px solid var(--border);color:var(--text);
+  padding:11px 18px;border-radius:999px;font-size:13.5px;font-weight:600;pointer-events:none;
+  transition:opacity .25s,transform .25s;max-width:min(92vw,420px);text-align:center;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.ok{border-color:var(--ok)} .toast.bad{border-color:var(--bad)}
+.modal-wrap{position:fixed;inset:0;z-index:50;background:rgba(12,10,8,.62);display:flex;align-items:center;justify-content:center;padding:22px}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:20px;max-width:360px;width:100%;animation:viewIn .22s ease}
+.modal h3{font-size:17px;margin-bottom:6px}
+.modal p{font-size:14px;color:var(--dim);line-height:1.5}
+.m-actions{display:flex;gap:10px;margin-top:18px}
+.m-actions .btn{flex:1}
+
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="appbar">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 48 48" aria-hidden="true">
+      <rect width="48" height="48" rx="12" fill="var(--accent-fill)"/>
+      <path d="M14 25l7 7 13-15" fill="none" stroke="var(--accent-ink)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div>
+      <h1>Attendance</h1>
+      <p class="sub">Hawassa University · NS-3 Group 1</p>
+    </div>
+  </div>
+  <button class="week-chip" id="weekChip" data-action="nav" data-view="week" aria-label="Go to week view">Week —</button>
+</header>
+
+<main>
+  <section id="view-today" class="view"></section>
+  <section id="view-week" class="view" hidden></section>
+  <section id="view-dash" class="view" hidden></section>
+  <section id="view-settings" class="view" hidden></section>
+</main>
+
+<nav class="tabs" id="tabs" aria-label="Main navigation"></nav>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="modal-wrap" id="modalWrap" hidden>
+  <div class="modal" id="modalBox" role="dialog" aria-modal="true" aria-labelledby="modalTitle"></div>
+</div>
+<input type="file" id="importFile" accept=".json,application/json" hidden>
+<noscript><p style="padding:24px 16px">This tracker needs JavaScript to run.</p></noscript>
+
+<script>
+'use strict';
+
+/* =====================================================================
+   1. SCHEDULE DATA — edit here to adjust courses or the timetable.
+      COURSES: id -> display name + short code shown on cards.
+      SCHEDULE: index 0 = Monday … 4 = Friday. Each block is
+      { s: first period, e: last period, c: course id, t: type }.
+      Period 5 is kept free, exactly as in the real timetable.
+   ===================================================================== */
+const COURSES = {
+  logic:    { name: 'Logic and Critical Thinking',          short: 'LOGIC' },
+  anthro:   { name: 'Social Anthropology',                  short: 'ANTH'  },
+  english:  { name: 'Communicative English',                short: 'ENG'   },
+  emerging: { name: 'Intro to Emerging Technologies',       short: 'IET'   },
+  math:     { name: 'Mathematics for Natural Sciences',     short: 'MATH'  },
+  physics:  { name: 'General Physics',                      short: 'PHYS'  },
+  fitness:  { name: 'Physical Fitness',                     short: 'FIT'   },
+  sss:      { name: 'Student Success Suite',                short: 'SSS'   },
+};
+
+const SCHEDULE = [
+  /* Monday    */ [ {s:1,e:2,c:'math',t:'Lecture'}, {s:3,e:4,c:'anthro',t:'Lecture'}, {s:6,e:8,c:'emerging',t:'Lab'} ],
+  /* Tuesday   */ [ {s:3,e:4,c:'physics',t:'Lecture'}, {s:6,e:6,c:'math',t:'Lecture'} ],
+  /* Wednesday */ [ {s:1,e:2,c:'logic',t:'Lecture'}, {s:3,e:4,c:'math',t:'Tutorial'}, {s:6,e:6,c:'physics',t:'Lecture'} ],
+  /* Thursday  */ [ {s:1,e:2,c:'physics',t:'Lab'}, {s:3,e:3,c:'english',t:'Lecture'}, {s:6,e:6,c:'logic',t:'Lecture'}, {s:7,e:8,c:'fitness',t:'Field'} ],
+  /* Friday    */ [ {s:1,e:2,c:'english',t:'Lecture'}, {s:6,e:6,c:'sss',t:'Lecture'}, {s:7,e:8,c:'emerging',t:'Lecture'} ],
+];
+
+/* =====================================================================
+   2. Small helpers (DOM, icons, dates, formatting)
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* Inline stroke icons — no emoji, no external icon files. */
+const ICONS = {
+  check:   '<path d="M4.5 12.5l5 5L19.5 6.5"/>',
+  x:       '<path d="M6 6l12 12M18 6L6 18"/>',
+  cal:     '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10.5h18"/>',
+  cols:    '<rect x="3.5" y="4.5" width="17" height="15" rx="3"/><path d="M9.5 4.5v15M14.5 4.5v15"/>',
+  chart:   '<path d="M4.5 20.5h15"/><path d="M7.5 20.5v-6M12 20.5V9M16.5 20.5v-9"/>',
+  sliders: '<path d="M4 7.5h9M17.5 7.5H20M4 16.5h3M11.5 16.5H20"/><circle cx="15" cy="7.5" r="2.6"/><circle cx="9" cy="16.5" r="2.6"/>',
+  chevL:   '<path d="M14.5 5.5L8 12l6.5 6.5"/>',
+  chevR:   '<path d="M9.5 5.5L16 12l-6.5 6.5"/>',
+  download:'<path d="M12 3.5V14M7.5 9.5L12 14l4.5-4.5M4.5 19.5h15"/>',
+  upload:  '<path d="M12 14V3.5M7.5 8L12 3.5 16.5 8M4.5 19.5h15"/>',
+  trash:   '<path d="M4.5 6.5h15M9.5 6.5v-2h5v2M7 6.5l.7 13h8.6l.7-13M10.3 10.5v5.5M13.7 10.5v5.5"/>',
+  slash:   '<circle cx="12" cy="12" r="8.5"/><path d="M6 6.7l12 10.6"/>',
+  alert:   '<path d="M12 3.8L2.6 20h18.8L12 3.8z"/><path d="M12 10v4.3M12 17.1v.2"/>',
+};
+const icon = (n, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
+
+/* Date helpers — everything local-time, keys are YYYY-MM-DD. */
+const DOWS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const pad = n => String(n).padStart(2, '0');
+const toKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const todayKey = () => toKey(new Date());
+const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+const dowMon = d => (d.getDay() + 6) % 7;               // 0 = Monday … 6 = Sunday
+const fmtLong = d => `${DOWS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]}`;
+const fmtShort = d => `${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)}`;
+const fmtPct = p => p == null ? '—' : p.toFixed(1) + '%';
+
+/* Strict date-key parser: also rejects impossible dates like 2025-02-30. */
+function fromKey(s) {
+  if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
+  const [y, m, d] = s.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null;
+  return dt;
+}
+
+/* =====================================================================
+   3. State — persistence in localStorage, with sanitising on the way in
+   ===================================================================== */
+const STORE_KEY = 'ns3-attendance-v1';
+
+function sanitizeSettings(s) {
+  s = (s && typeof s === 'object') ? s : {};
+  return {
+    start:    fromKey(s.start) ? s.start : toKey(addDays(startOfDay(new Date()), -dowMon(new Date()))), // default: Monday of this week
+    mode:     s.mode === 'total' ? 'total' : 'course',
+    counting: s.counting === 'sessions' ? 'sessions' : 'periods',
+    requiredPct: clamp(Math.round(+s.requiredPct) || 80, 1, 100),
+    weeks:    clamp(Math.round(+s.weeks) || 15, 1, 30),
+  };
+}
+function sanitizeRecords(raw) {
+  const out = {};
+  if (!raw || typeof raw !== 'object') return out;
+  for (const [k, v] of Object.entries(raw)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(k) || !fromKey(k)) continue;
+    if (!v || typeof v !== 'object') continue;
+    const r = {};
+    if (v.holiday === true) r.holiday = true;
+    let marks = 0;
+    if (v.marks && typeof v.marks === 'object') {
+      for (const [bk, mv] of Object.entries(v.marks)) {
+        if (mv === 'A' || mv === 'M') { (r.marks || (r.marks = {}))[bk] = mv; marks++; }
+      }
+    }
+    if (r.holiday || marks) out[k] = r;
+  }
+  return out;
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    if (!o || typeof o !== 'object') return null;
+    return { settings: sanitizeSettings(o.settings), records: sanitizeRecords(o.records) };
+  } catch (e) { return null; }
+}
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+  catch (e) { toast('Could not save — storage blocked', 'bad'); }
+}
+
+let state = load() || { settings: sanitizeSettings({}), records: {} };
+const settings = state.settings;                 // live alias — always mutate in place
+const defaultSettings = () => sanitizeSettings({});
+/* Swap contents in place so the `settings` alias stays valid after import/reset. */
+function replaceState(newSettings, newRecords) {
+  Object.keys(settings).forEach(k => delete settings[k]);
+  Object.assign(settings, newSettings);
+  state.records = newRecords;
+}
+
+const ui = { view: 'today', date: null, week: 1 };
+const bKey = (dw, b) => dw + '-' + b.s;          // stable id for a timetable block, e.g. "0-1"
+const perLabel = b => b.e > b.s ? `P${b.s}\u2013${b.e}` : `P${b.s}`;
+const unitCount = b => settings.counting === 'sessions' ? 1 : (b.e - b.s + 1);
+
+/* =====================================================================
+   4. Semester math & statistics engine
+   ===================================================================== */
+const semStart = () => startOfDay(fromKey(settings.start) || new Date());
+const semesterEnd = () => addDays(semStart(), settings.weeks * 7 - 1);
+function weekOf(d) {
+  const days = Math.round((startOfDay(d) - semStart()) / 86400000);
+  return Math.floor(days / 7) + 1;               // may be <= 0 (before start) or > weeks (ended)
+}
+const currentWeek = () => weekOf(new Date());
+const currentMark = (date, block) => (state.records[date] && state.records[date].marks && state.records[date].marks[block]) || null;
+
+/* Walk every scheduled day from the semester start up to "now" (capped at
+   the last teaching week), skipping weekends and marked holidays. */
+function computeStats() {
+  const start = semStart(), end = semesterEnd(), now = startOfDay(new Date());
+  const limit = now < end ? now : end;
+  const perWeek = {};
+  SCHEDULE.forEach(blocks => blocks.forEach(b => { perWeek[b.c] = (perWeek[b.c] || 0) + unitCount(b); }));
+  const courses = {}; Object.keys(COURSES).forEach(id => courses[id] = { held: 0, att: 0, miss: 0 });
+  const total = { held: 0, att: 0, miss: 0 };
+  if (limit >= start) {
+    for (let i = 0; ; i++) {
+      const d = addDays(start, i);
+      if (d > limit) break;
+      const dw = dowMon(d);
+      if (dw > 4) continue;
+      const rec = state.records[toKey(d)];
+      if (rec && rec.holiday) continue;
+      for (const b of SCHEDULE[dw]) {
+        const u = unitCount(b), c = courses[b.c];
+        c.held += u; total.held += u;
+        const m = rec && rec.marks ? rec.marks[bKey(dw, b)] : null;
+        if (m === 'A') { c.att += u; total.att += u; }
+        else if (m === 'M') { c.miss += u; total.miss += u; }
+      }
+    }
+  }
+  return { perWeek, courses, total };
+}
+
+/* How many absences are still allowed against the FULL semester total. */
+function absLeft(held, att, totalUnits) {
+  const needed = Math.ceil(totalUnits * settings.requiredPct / 100);
+  const allowed = totalUnits - needed;
+  return { allowed, left: allowed - (held - att) };   // unlogged classes count as absences here
+}
+function statusOf(p) {
+  if (p == null) return 'none';
+  if (p >= settings.requiredPct + 5) return 'ok';     // green headroom band
+  if (p >= settings.requiredPct) return 'warn';       // amber: still above the line
+  return 'bad';                                       // red: below the line
+}
+
+/* Per-week tally used by the Week view summary. */
+function weekSummary(w) {
+  const start = addDays(semStart(), (w - 1) * 7);
+  const out = { att: 0, miss: 0, unlogged: 0, hol: 0, units: 0 };
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(start, i), dw = dowMon(d);
+    if (dw > 4) continue;
+    const rec = state.records[toKey(d)];
+    if (rec && rec.holiday) { out.hol++; continue; }
+    for (const b of SCHEDULE[dw]) {
+      const u = unitCount(b); out.units += u;
+      const m = rec && rec.marks ? rec.marks[bKey(dw, b)] : null;
+      if (m === 'A') out.att += u; else if (m === 'M') out.miss += u; else out.unlogged += u;
+    }
+  }
+  return out;
+}
+
+/* =====================================================================
+   5. Generic UI — toast, modal, view plumbing
+   ===================================================================== */
+let toastTimer = null;
+function toast(msg, kind) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (kind ? ' ' + kind : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+let modalOnOk = null;
+function openModal({ title, body, okLabel = 'OK', danger = false, onOk = null }) {
+  modalOnOk = onOk;
+  $('#modalBox').innerHTML = `
+    <h3 id="modalTitle">${esc(title)}</h3>
+    <p>${body}</p>
+    <div class="m-actions">
+      <button class="btn" data-action="modal-close">Cancel</button>
+      <button class="btn ${danger ? 'btn-danger-fill' : 'btn-accent'}" data-action="modal-ok">${esc(okLabel)}</button>
+    </div>`;
+  $('#modalWrap').hidden = false;
+  const ok = $('#modalWrap').querySelector('[data-action="modal-ok"]');
+  if (ok) ok.focus();
+}
+function closeModal() { $('#modalWrap').hidden = true; modalOnOk = null; }
+
+const setViewHTML = (section, html) => { section.innerHTML = `<div class="vin">${html}</div>`; };
+
+function switchView(v) {
+  ui.view = v;
+  ['today','week','dash','settings'].forEach(k => { $('#view-' + k).hidden = k !== v; });
+  document.querySelectorAll('.tab').forEach(t => {
+    const on = t.dataset.view === v;
+    t.classList.toggle('on', on);
+    t.setAttribute('aria-current', on ? 'page' : 'false');
+  });
+  renderCurrent();
+}
+function renderCurrent() {
+  renderHeader();
+  ({ today: renderToday, week: renderWeek, dash: renderDash, settings: renderSettings })[ui.view]();
+}
+function renderHeader() {
+  const cw = currentWeek(), el = $('#weekChip');
+  if (cw < 1) el.textContent = 'Starts ' + fmtShort(semStart());
+  else if (cw > settings.weeks) el.textContent = 'Semester ended';
+  else el.textContent = `Week ${cw} / ${settings.weeks}`;
+}
+
+/* =====================================================================
+   6. Today view
+   ===================================================================== */
+function renderToday() {
+  const key = ui.date, d = fromKey(key), dw = dowMon(d);
+  const rec = state.records[key] || {};
+  const blocks = dw <= 4 ? SCHEDULE[dw] : [];
+  const hol = !!rec.holiday;
+  const wk = weekOf(d);
+
+  let note = '';
+  if (wk < 1) note = `The semester starts on ${fmtLong(semStart())}. Anything logged before that won't count toward the totals.`;
+  else if (wk > settings.weeks) note = `This date is past Week ${settings.weeks}. Anything logged here won't count toward the totals.`;
+
+  const body = hol
+    ? `<div class="empty"><p class="kicker">${DOWS[d.getDay()]}</p><h3>No-class day</h3><p>Marked as a holiday — excluded from every total.</p></div>`
+    : blocks.length
+      ? blocks.map(b => {
+          const k = bKey(dw, b), st = currentMark(key, k) || '';
+          return `
+          <article class="cls card" data-state="${st}">
+            <div class="cls-top">
+              <span class="per">${perLabel(b)}</span>
+              <span class="badge">${esc(b.t)}</span>
+              <span class="code">${COURSES[b.c].short}</span>
+            </div>
+            <h3 class="cls-name">${esc(COURSES[b.c].name)}</h3>
+            <div class="cls-actions">
+              <button class="mark-btn att ${st === 'A' ? 'on' : ''}" data-action="mark" data-date="${key}" data-block="${k}" data-val="A" aria-pressed="${st === 'A'}">${icon('check')}Attended</button>
+              <button class="mark-btn miss ${st === 'M' ? 'on' : ''}" data-action="mark" data-date="${key}" data-block="${k}" data-val="M" aria-pressed="${st === 'M'}">${icon('x')}Missed</button>
+            </div>
+          </article>`;
+        }).join('')
+      : `<div class="empty"><p class="kicker">${DOWS[d.getDay()]}</p><h3>${dw > 4 ? 'Weekend' : 'Free day'}</h3><p>${dw > 4 ? 'No classes — enjoy the break.' : 'No classes scheduled for this day.'}</p></div>`;
+
+  setViewHTML($('#view-today'), `
+    <div class="date-head">
+      <p class="kicker">${DOWS[d.getDay()]}${wk >= 1 && wk <= settings.weeks ? ' · Week ' + wk : ''}</p>
+      <h2>${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}</h2>
+    </div>
+    <div class="date-nav">
+      <button class="icon-btn" data-action="day-step" data-dir="-1" aria-label="Previous day">${icon('chevL')}</button>
+      <input type="date" id="dateInput" value="${key}" aria-label="Pick a date">
+      <button class="icon-btn" data-action="day-step" data-dir="1" aria-label="Next day">${icon('chevR')}</button>
+      ${key !== todayKey() ? `<button class="chip-btn" data-action="goto-today">Today</button>` : ''}
+    </div>
+    ${note ? `<div class="note">${icon('alert')}<span>${note}</span></div>` : ''}
+    ${blocks.length ? `
+    <div class="hol-card ${hol ? 'is-hol' : ''}">
+      <div class="hol-info">${icon('slash')}<div><b>No class today</b><span>Exclude this date from all totals</span></div></div>
+      <button class="hol-btn ${hol ? 'on' : ''}" data-action="holiday" data-date="${key}" aria-pressed="${hol}">${hol ? 'Undo' : 'Mark'}</button>
+    </div>` : ''}
+    ${body}
+    ${!hol && blocks.length ? `<p class="tally" id="dayTally">${todayTallyText()}</p>` : ''}
+  `);
+}
+
+function todayTallyText() {
+  const dw = dowMon(fromKey(ui.date));
+  if (dw > 4) return '';
+  const blocks = SCHEDULE[dw];
+  const marked = blocks.filter(b => currentMark(ui.date, bKey(dw, b))).length;
+  return `${marked} of ${blocks.length} classes logged for this day`;
+}
+
+/* =====================================================================
+   7. Week view
+   ===================================================================== */
+function renderWeek() {
+  ui.week = clamp(ui.week, 1, settings.weeks);
+  const start = addDays(semStart(), (ui.week - 1) * 7);
+  const cw = currentWeek();
+  const isCur = cw === ui.week;
+  const future = start > startOfDay(new Date());
+
+  const opts = Array.from({ length: settings.weeks }, (_, i) =>
+    `<option value="${i + 1}"${i + 1 === ui.week ? ' selected' : ''}>Week ${i + 1}</option>`).join('');
+  const days = [0, 1, 2, 3, 4].map(i => daySection(addDays(start, i))).join('');
+
+  setViewHTML($('#view-week'), `
+    <div class="week-head">
+      <p class="kicker">Semester week ${ui.week} of ${settings.weeks}${isCur ? ' · current' : ''}</p>
+      <h2>${fmtShort(start)} – ${fmtShort(addDays(start, 6))}</h2>
+    </div>
+    <div class="week-ctrl">
+      <button class="icon-btn" data-action="week-step" data-dir="-1" ${ui.week <= 1 ? 'disabled' : ''} aria-label="Previous week">${icon('chevL')}</button>
+      <div class="sel-wrap"><select id="weekSel" aria-label="Select week">${opts}</select>${icon('chevR')}</div>
+      <button class="icon-btn" data-action="week-step" data-dir="1" ${ui.week >= settings.weeks ? 'disabled' : ''} aria-label="Next week">${icon('chevR')}</button>
+      ${!isCur && cw >= 1 && cw <= settings.weeks ? `<button class="chip-btn" data-action="week-current">Current</button>` : ''}
+    </div>
+    ${future ? `<div class="note">${icon('alert')}<span>This week hasn't started yet. You can pre-mark classes — they'll count once those days arrive.</span></div>` : ''}
+    <div id="weekStats">${weekSummaryHTML()}</div>
+    ${days}
+  `);
+}
+
+function daySection(d) {
+  const key = toKey(d), dw = dowMon(d);
+  const rec = state.records[key] || {};
+  const hol = !!rec.holiday;
+  const rows = hol
+    ? `<p class="day-note">Marked as no-class — excluded from all totals.</p>`
+    : SCHEDULE[dw].map(b => {
+        const k = bKey(dw, b), st = currentMark(key, k) || '';
+        return `
+        <div class="brow" data-state="${st}">
+          <div class="b-left"><span class="per">${perLabel(b)}</span><span class="badge">${esc(b.t)}</span></div>
+          <span class="b-name" title="${esc(COURSES[b.c].name)}">${esc(COURSES[b.c].name)}</span>
+          <div class="b-btns">
+            <button class="mark-btn att ${st === 'A' ? 'on' : ''}" data-action="mark" data-date="${key}" data-block="${k}" data-val="A" aria-label="Mark ${esc(COURSES[b.c].name)} attended" aria-pressed="${st === 'A'}">${icon('check')}</button>
+            <button class="mark-btn miss ${st === 'M' ? 'on' : ''}" data-action="mark" data-date="${key}" data-block="${k}" data-val="M" aria-label="Mark ${esc(COURSES[b.c].name)} missed" aria-pressed="${st === 'M'}">${icon('x')}</button>
+          </div>
+        </div>`;
+      }).join('');
+  return `
+    <section class="day ${hol ? 'is-hol' : ''}">
+      <header class="day-head">
+        <div><span class="day-name">${DOWS[dw]}</span><span class="day-date">${fmtShort(d)}</span></div>
+        <button class="hol-btn ${hol ? 'on' : ''}" data-action="holiday" data-date="${key}" aria-pressed="${hol}" title="Toggle no-class day">${icon('slash')}${hol ? 'Undo' : 'No class'}</button>
+      </header>
+      ${rows}
+    </section>`;
+}
+
+function weekSummaryHTML() {
+  const s = weekSummary(ui.week);
+  const total = s.units || 1;
+  return `
+    <div class="wstats">
+      <div class="wstat"><b class="t-ok">${s.att}</b><span>attended</span></div>
+      <div class="wstat"><b class="t-bad">${s.miss}</b><span>missed</span></div>
+      <div class="wstat"><b>${s.unlogged}</b><span>not logged</span></div>
+      ${s.hol ? `<div class="wstat"><b>${s.hol}</b><span>holidays</span></div>` : ''}
+    </div>
+    ${s.units ? `<div class="stack"><i class="s-att" style="width:${(s.att / total * 100).toFixed(1)}%"></i><i class="s-miss" style="width:${(s.miss / total * 100).toFixed(1)}%"></i></div>` : ''}`;
+}
+
+/* =====================================================================
+   8. Dashboard (per-course detail + overall "total" summary)
+   ===================================================================== */
+const RING_R = 84, RING_C = 2 * Math.PI * RING_R;
+
+function ringHTML(pct, req) {
+  const frac = pct == null ? 0 : Math.min(pct, 100) / 100;
+  const st = statusOf(pct);
+  const off = (RING_C * (1 - frac)).toFixed(1);
+  const a = (req / 100 * 2 - 0.5) * Math.PI;             // tick angle measured from 12 o'clock
+  const cos = Math.cos(a), sin = Math.sin(a);
+  const tick = `<line class="ring-tick" x1="${(100 + cos * 73).toFixed(1)}" y1="${(100 + sin * 73).toFixed(1)}" x2="${(100 + cos * 95).toFixed(1)}" y2="${(100 + sin * 95).toFixed(1)}"/>`;
+  return `
+    <div class="ring-wrap">
+      <svg class="ring" viewBox="0 0 200 200" role="img" aria-label="Overall attendance ${pct == null ? 'not available' : pct.toFixed(1) + ' percent'}">
+        <circle class="ring-track" cx="100" cy="100" r="${RING_R}" fill="none" stroke-width="11"/>
+        <circle class="ring-fg ${st === 'none' ? 'r-none' : 'r-' + st}" id="ringFg" cx="100" cy="100" r="${RING_R}"
+          fill="none" stroke-width="11" stroke-linecap="round"
+          stroke-dasharray="${RING_C.toFixed(1)}" stroke-dashoffset="${RING_C.toFixed(1)}"
+          data-off="${off}" transform="rotate(-90 100 100)"/>
+        ${tick}
+      </svg>
+      <div class="ring-center">
+        <span class="ring-pct ${st === 'none' ? 'faint' : 'p-' + st}">${fmtPct(pct)}</span>
+        <span class="ring-sub">overall</span>
+      </div>
+    </div>`;
+}
+function animateRing() {
+  const fg = document.getElementById('ringFg');
+  if (!fg) return;
+  requestAnimationFrame(() => requestAnimationFrame(() => { fg.style.strokeDashoffset = fg.dataset.off + 'px'; }));
+}
+
+function emptyHeldLine() {
+  const cw = currentWeek();
+  if (cw < 1) return `No classes held yet — the semester begins <b>${fmtLong(semStart())}</b>.`;
+  if (cw > settings.weeks) return `All ${settings.weeks} teaching weeks are complete.`;
+  return `No classes counted yet — scheduled days may be marked as holidays.`;
+}
+
+function renderDash() {
+  const s = computeStats();
+  const unit = settings.counting === 'sessions' ? 'sessions' : 'periods';
+  const req = settings.requiredPct;
+  const pct = s.total.held ? s.total.att / s.total.held * 100 : null;
+  const perWeekTotal = Object.values(s.perWeek).reduce((a, b) => a + b, 0);
+  const all = absLeft(s.total.held, s.total.att, perWeekTotal * settings.weeks);
+  const unlog = s.total.held - s.total.att - s.total.miss;
+  const heroAbsCls = all.left < 0 ? 'b' : (all.left <= 2 && s.total.held > 0 ? 'w' : '');
+  const absNum = all.left < 0 ? '\u2212' + (-all.left) : all.left;
+
+  const rows = Object.keys(COURSES).map(id => {
+    const c = s.courses[id];
+    const p = c.held ? c.att / c.held * 100 : null;
+    const pw = s.perWeek[id] || 0;
+    const a = absLeft(c.held, c.att, pw * settings.weeks);
+    const un = c.held - c.att - c.miss;
+    const chip = a.left < 0
+      ? `<span class="chip c-bad">${icon('alert')}over by ${-a.left}</span>`
+      : a.left <= 2 ? `<span class="chip c-warn">${icon('alert')}only ${a.left} left</span>` : '';
+    const meta = c.held
+      ? `Held ${c.held} · Attended ${c.att} · Missed ${c.miss}${un > 0 ? ` <span class="faint">· ${un} not logged</span>` : ''}`
+      : `No classes held yet`;
+    const st = statusOf(p);
+    return `
+    <article class="crow">
+      <div class="crow-top">
+        <span class="code">${COURSES[id].short}</span>
+        <h3>${esc(COURSES[id].name)}</h3>
+        <span class="pct ${st === 'none' ? 'faint' : 'p-' + st}">${fmtPct(p)}</span>
+      </div>
+      <p class="crow-meta">${meta}</p>
+      <div class="bar"><i class="${st === 'none' ? '' : 'f-' + st}" style="width:${p == null ? 0 : Math.min(p, 100).toFixed(1)}%"></i></div>
+      <div class="crow-abs">
+        <span>${a.left} of ${a.allowed} absences left <span class="faint">· ${pw} ${unit}/wk × ${settings.weeks}</span></span>${chip}
+      </div>
+    </article>`;
+  }).join('');
+
+  setViewHTML($('#view-dash'), `
+    <section class="hero">
+      <p class="kicker">Overall attendance</p>
+      ${ringHTML(pct, req)}
+      <p class="hero-line">${s.total.held
+        ? `Attended <b>${s.total.att}</b> of <b>${s.total.held}</b> ${unit} held${unlog > 0 ? ` <span class="faint">· ${unlog} not logged</span>` : ''}`
+        : emptyHeldLine()}</p>
+      <p class="hero-line faint">Required ${req}% (the tick on the ring) · green ${req + 5}%+ · amber ${req}–${req + 5}% · red below</p>
+      <div class="abs-hero ${heroAbsCls}">
+        <span class="lbl">Absences left</span><span class="n">${absNum}</span><span class="lbl">of ${all.allowed}</span>
+      </div>
+      <p class="hero-mode">${settings.mode === 'course'
+        ? `The ${req}% rule applies to each course separately — watch the warnings on the courses below.`
+        : `The ${req}% rule applies to your combined total across all courses.`}</p>
+    </section>
+    <p class="list-title">By course</p>
+    <section class="sheet">${rows}</section>
+  `);
+  animateRing();
+}
+
+/* =====================================================================
+   9. Settings view
+   ===================================================================== */
+let swStatusText = 'Offline caching: checking…';
+
+function renderSettings() {
+  const days = Object.keys(state.records).length;
+  const marks = Object.values(state.records).reduce((n, r) => n + Object.keys(r.marks || {}).length, 0);
+  setViewHTML($('#view-settings'), `
+    <div class="card">
+      <h2 class="sec-t">The ${settings.requiredPct}% rule</h2>
+      <p class="sec-sub">How the requirement is applied</p>
+      <div class="seg" role="group" aria-label="Rule mode">
+        <button data-action="set" data-key="mode" data-val="course" aria-pressed="${settings.mode === 'course'}">Per course</button>
+        <button data-action="set" data-key="mode" data-val="total" aria-pressed="${settings.mode === 'total'}">Total attendance</button>
+      </div>
+      <p class="sec-sub">What gets counted</p>
+      <div class="seg" role="group" aria-label="Counting mode">
+        <button data-action="set" data-key="counting" data-val="periods" aria-pressed="${settings.counting === 'periods'}">Count by periods</button>
+        <button data-action="set" data-key="counting" data-val="sessions" aria-pressed="${settings.counting === 'sessions'}">Count by sessions</button>
+      </div>
+      <p class="hint">Sessions: one consecutive block of periods in a course counts as a single session — e.g. Monday P6–8 Emerging Technologies is 1 session, not 3 periods.</p>
+    </div>
+    <div class="card">
+      <h2 class="sec-t">Semester</h2>
+      <label class="field"><span>Semester start<small>Week 1 begins on this date</small></span><input type="date" id="setStart" value="${settings.start}"></label>
+      <label class="field"><span>Required percentage</span><input type="number" id="setPct" inputmode="numeric" min="1" max="100" step="1" value="${settings.requiredPct}"></label>
+      <label class="field"><span>Teaching weeks</span><input type="number" id="setWeeks" inputmode="numeric" min="1" max="30" step="1" value="${settings.weeks}"></label>
+    </div>
+    <div class="card">
+      <h2 class="sec-t">Data</h2>
+      <p class="hint">${days} ${days === 1 ? 'day' : 'days'} logged · ${marks} ${marks === 1 ? 'mark' : 'marks'} · everything stays on this device.</p>
+      <div class="btn-row">
+        <button class="btn" data-action="export">${icon('download')}Export</button>
+        <button class="btn" data-action="import">${icon('upload')}Import</button>
+      </div>
+      <button class="btn btn-danger wide" data-action="reset">${icon('trash')}Reset all data</button>
+    </div>
+    <div class="card">
+      <h2 class="sec-t">About</h2>
+      <p class="hint">Natural Science NS-3 · Group 1 · Room B113 / R-03 · Hawassa University.</p>
+      <p class="hint">${swStatusText}</p>
+      <p class="hint">Install: open your browser menu and choose “Add to Home screen” for a standalone app.</p>
+    </div>
+  `);
+}
+
+/* =====================================================================
+   10. Actions, marking logic, import/export
+   ===================================================================== */
+function syncMarks() {
+  /* Update mark buttons in place — no full re-render, so taps feel instant. */
+  document.querySelectorAll('.mark-btn').forEach(btn => {
+    const m = currentMark(btn.dataset.date, btn.dataset.block);
+    const on = m === btn.dataset.val;
+    btn.classList.toggle('on', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    const host = btn.closest('.cls, .brow');
+    if (host) host.dataset.state = m || '';
+  });
+  if (ui.view === 'today') { const t = $('#dayTally'); if (t) t.textContent = todayTallyText(); }
+  if (ui.view === 'week') { const w = $('#weekStats'); if (w) w.innerHTML = weekSummaryHTML(); }
+}
+
+function toggleHoliday(key) {
+  const rec = state.records[key];
+  if (rec && rec.holiday) {
+    delete rec.holiday;
+    if (!rec.marks || !Object.keys(rec.marks).length) delete state.records[key];
+  } else {
+    (state.records[key] || (state.records[key] = {})).holiday = true;
+  }
+  save();
+  renderCurrent();
+}
+
+function exportData() {
+  const payload = {
+    app: 'ns3-attendance', version: 1, exportedAt: new Date().toISOString(),
+    settings: { ...settings }, records: state.records,
+  };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }));
+  a.download = `ns3-attendance-backup-${todayKey()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast('Backup file downloaded', 'ok');
+}
+
+function handleImport(file) {
+  const fr = new FileReader();
+  fr.onerror = () => toast('Could not read that file', 'bad');
+  fr.onload = () => {
+    let obj = null;
+    try { obj = JSON.parse(String(fr.result)); } catch (e) {}
+    if (!obj || typeof obj !== 'object' || typeof obj.records !== 'object' || !obj.records) {
+      toast('That file is not a valid backup', 'bad'); return;
+    }
+    const recs = sanitizeRecords(obj.records);
+    const set = sanitizeSettings(obj.settings);
+    const n = Object.keys(recs).length;
+    openModal({
+      title: 'Restore backup?',
+      body: `This backup holds ${n} ${n === 1 ? 'day' : 'days'} of records plus its own settings. Restoring it replaces everything currently stored on this device.`,
+      okLabel: 'Restore',
+      onOk() {
+        replaceState(set, recs); save();
+        ui.date = todayKey(); ui.week = clamp(currentWeek(), 1, settings.weeks);
+        renderCurrent(); toast('Backup restored', 'ok');
+      },
+    });
+  };
+  fr.readAsText(file);
+}
+
+function hardReset() {
+  try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+  replaceState(defaultSettings(), {});
+  ui.date = todayKey(); ui.week = clamp(currentWeek(), 1, settings.weeks);
+  renderCurrent();
+  toast('All data cleared');
+}
+
+const actions = {
+  nav(el) { switchView(el.dataset.view); },
+  'day-step'(el) { ui.date = toKey(addDays(fromKey(ui.date), +el.dataset.dir)); renderToday(); },
+  'goto-today'() { ui.date = todayKey(); renderToday(); },
+  mark(el) {
+    const { date, block, val } = el.dataset;
+    let rec = state.records[date];
+    if (!rec) rec = state.records[date] = {};
+    if (!rec.marks) rec.marks = {};
+    if (rec.marks[block] === val) {                      // tapping the active button clears the mark
+      delete rec.marks[block];
+      if (!rec.holiday && Object.keys(rec.marks).length === 0) delete state.records[date];
+    } else {
+      rec.marks[block] = val;                            // tapping the other button switches it
+    }
+    save(); syncMarks();
+  },
+  holiday(el) { toggleHoliday(el.dataset.date); },
+  'week-step'(el) { ui.week = clamp(ui.week + +el.dataset.dir, 1, settings.weeks); renderWeek(); },
+  'week-current'() { ui.week = clamp(currentWeek(), 1, settings.weeks); renderWeek(); },
+  set(el) {
+    settings[el.dataset.key] = el.dataset.val;
+    save(); renderSettings(); toast('Setting saved', 'ok');
+  },
+  export: exportData,
+  import() { $('#importFile').click(); },
+  reset() {
+    openModal({
+      title: 'Reset all data?',
+      body: 'This permanently deletes every mark, holiday and setting on this device. Export a backup first if you might need it.',
+      okLabel: 'Delete everything', danger: true, onOk: hardReset,
+    });
+  },
+  'modal-close'() { closeModal(); },
+  'modal-ok'() { const f = modalOnOk; closeModal(); if (f) f(); },
+};
+
+function onClick(e) {
+  const el = e.target.closest('[data-action]');
+  if (el && !el.disabled) { const fn = actions[el.dataset.action]; if (fn) fn(el, e); }
+}
+
+function onChange(e) {
+  const t = e.target;
+  if (t.id === 'dateInput') {
+    if (t.value && fromKey(t.value)) { ui.date = t.value; renderToday(); }
+    else t.value = ui.date;                              // ignore empty / impossible dates
+  }
+  else if (t.id === 'weekSel') {
+    const v = parseInt(t.value, 10);
+    if (v >= 1 && v <= settings.weeks) { ui.week = v; renderWeek(); }
+  }
+  else if (t.id === 'setStart') {
+    if (t.value && fromKey(t.value)) {
+      settings.start = t.value; save();
+      ui.week = clamp(currentWeek(), 1, settings.weeks);
+      renderCurrent(); toast('Semester start updated', 'ok');
+    } else { t.value = settings.start; toast('That date is not valid', 'bad'); }
+  }
+  else if (t.id === 'setPct' || t.id === 'setWeeks') {
+    const isPct = t.id === 'setPct';
+    const v = Math.round(Number(t.value));
+    if (!Number.isFinite(v)) { t.value = isPct ? settings.requiredPct : settings.weeks; return; }
+    const c = isPct ? clamp(v, 1, 100) : clamp(v, 1, 30);
+    if (isPct) settings.requiredPct = c;
+    else { settings.weeks = c; ui.week = clamp(ui.week, 1, c); }
+    t.value = c; save(); renderHeader();
+    toast(isPct ? `Required attendance set to ${c}%` : `Teaching weeks set to ${c}`, 'ok');
+  }
+  else if (t.id === 'importFile') {
+    const f = t.files && t.files[0]; t.value = '';
+    if (f) handleImport(f);
+  }
+}
+
+/* =====================================================================
+   11. PWA — manifest + icons generated at runtime, service worker
+   ===================================================================== */
+function drawIcon(size) {
+  const cv = document.createElement('canvas'); cv.width = cv.height = size;
+  const x = cv.getContext('2d'); const s = size / 512;
+  const rr = (X, Y, W, H, R) => {
+    x.beginPath();
+    x.moveTo(X + R, Y);
+    x.arcTo(X + W, Y, X + W, Y + H, R); x.arcTo(X + W, Y + H, X, Y + H, R);
+    x.arcTo(X, Y + H, X, Y, R); x.arcTo(X, Y, X + W, Y, R);
+    x.closePath();
+  };
+  rr(10 * s, 10 * s, 492 * s, 492 * s, 108 * s); x.fillStyle = '#211d17'; x.fill();
+  x.lineCap = 'round'; x.lineJoin = 'round';
+  x.strokeStyle = '#f2a83f'; x.lineWidth = 46 * s;       // ~80% ring — the rule itself
+  x.beginPath(); x.arc(256 * s, 256 * s, 140 * s, -Math.PI / 2, -Math.PI / 2 + Math.PI * 1.6); x.stroke();
+  x.strokeStyle = '#f6f1e6'; x.lineWidth = 42 * s;
+  x.beginPath(); x.moveTo(176 * s, 260 * s); x.lineTo(240 * s, 324 * s); x.lineTo(344 * s, 198 * s); x.stroke();
+  return cv.toDataURL('image/png');
+}
+
+function setupPWA() {
+  try {
+    const i180 = drawIcon(180), i192 = drawIcon(192), i512 = drawIcon(512);
+    $('#favicon').href = i192;
+    $('#touchIcon').href = i180;
+    const base = location.href.replace(/#.*$/, '');
+    const scope = base.slice(0, base.lastIndexOf('/') + 1);
+    const manifest = {
+      name: 'NS-3 Attendance', short_name: 'NS-3',
+      description: 'Offline attendance tracker for Hawassa University NS-3 Group 1.',
+      start_url: base, scope, display: 'standalone', lang: 'en',
+      background_color: '#151310', theme_color: '#151310',
+      icons: [
+        { src: i192, sizes: '192x192', type: 'image/png', purpose: 'any' },
+        { src: i512, sizes: '512x512', type: 'image/png', purpose: 'any' },
+      ],
+    };
+    /* Blob manifest keeps the app a single self-contained file. */
+    $('#manifestLink').href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' }));
+  } catch (e) { /* icons/manifest are enhancements — never break the app for them */ }
+}
+
+function setupSW() {
+  const set = t => { swStatusText = t; const el = $('#swStatus'); if (el) el.textContent = t; };
+  if (!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) {
+    set('Offline caching: inactive — works once served over http(s) with sw.js beside this file.');
+    return;
+  }
+  navigator.serviceWorker.register('./sw.js')
+    .then(() => navigator.serviceWorker.ready)
+    .then(() => set('Offline caching: active — the app works with no connection.'))
+    .catch(() => set('Offline caching: inactive — save sw.js next to index.html to enable it.'));
+}
+
+/* =====================================================================
+   12. Init
+   ===================================================================== */
+ $('#tabs').innerHTML = [
+  ['today', 'cal', 'Today'], ['week', 'cols', 'Week'], ['dash', 'chart', 'Dashboard'], ['settings', 'sliders', 'Settings'],
+].map(([v, i, l]) => `<button class="tab" data-action="nav" data-view="${v}" aria-current="false">${icon(i)}<span>${l}</span></button>`).join('');
+
+document.addEventListener('click', onClick);
+document.addEventListener('change', onChange);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+ $('#modalWrap').addEventListener('click', e => { if (e.target.id === 'modalWrap') closeModal(); });
+
+ui.date = todayKey();
+ui.week = clamp(currentWeek(), 1, settings.weeks);
+setupPWA();
+setupSW();
+switchView('today');
+</script>
+</body>
+</html>
