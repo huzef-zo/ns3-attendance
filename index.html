@@ -408,14 +408,19 @@ function fromKey(s) {
    ===================================================================== */
 const STORE_KEY = 'ns3-attendance-v1';
 
+const DEFAULT_START = '2026-10-26';
+
 function sanitizeSettings(s) {
   s = (s && typeof s === 'object') ? s : {};
+  let start = fromKey(s.start) ? s.start : null;
+  // If previously set to Tuesday Oct 27 due to day alignment bug, migrate to Monday Oct 26
+  if (start === '2026-10-27') start = DEFAULT_START;
   return {
-    start:    fromKey(s.start) ? s.start : toKey(addDays(startOfDay(new Date()), -dowMon(new Date()))), // default: Monday of this week
-    mode:     s.mode === 'total' ? 'total' : 'course',
-    counting: s.counting === 'sessions' ? 'sessions' : 'periods',
+    start:       start || DEFAULT_START,
+    mode:        s.mode === 'total' ? 'total' : 'course',
+    counting:    s.counting === 'sessions' ? 'sessions' : 'periods',
     requiredPct: clamp(Math.round(+s.requiredPct) || 80, 1, 100),
-    weeks:    clamp(Math.round(+s.weeks) || 15, 1, 30),
+    weeks:       clamp(Math.round(+s.weeks) || 15, 1, 30),
   };
 }
 function sanitizeCourses(raw) {
@@ -513,7 +518,7 @@ const unitCount = b => settings.counting === 'sessions' ? 1 : (b.e - b.s + 1);
    4. Semester math & statistics engine
    ===================================================================== */
 const semStart = () => {
-  const raw = startOfDay(fromKey(settings.start) || new Date());
+  const raw = startOfDay(fromKey(settings.start) || fromKey(DEFAULT_START) || new Date());
   return addDays(raw, -dowMon(raw));
 };
 const semesterEnd = () => addDays(semStart(), settings.weeks * 7 - 1);
@@ -1310,7 +1315,10 @@ function setupSW() {
     return;
   }
   navigator.serviceWorker.register('./sw.js')
-    .then(() => navigator.serviceWorker.ready)
+    .then((reg) => {
+      reg.update();
+      return navigator.serviceWorker.ready;
+    })
     .then(() => set('Offline caching: active — the app works with no connection.'))
     .catch(() => set('Offline caching: inactive — save sw.js next to index.html to enable it.'));
 }

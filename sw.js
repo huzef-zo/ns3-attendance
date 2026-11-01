@@ -1,5 +1,5 @@
 /* sw.js — offline cache for NS-3 Attendance. Save beside index.html. */
-const CACHE = 'ns3-attendance-v1';
+const CACHE = 'ns3-attendance-v2';
 const ASSETS = ['./', './index.html'];
 
 self.addEventListener('install', (e) => {
@@ -16,13 +16,27 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+  const isHtml = e.request.mode === 'navigate' ||
+    (e.request.headers.get('accept') && e.request.headers.get('accept').includes('text/html'));
+  if (isHtml) {
+    e.respondWith(
+      fetch(e.request)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
+          return res;
+        })
+        .catch(() => caches.match(e.request).then((hit) => hit || caches.match('./')))
+    );
+    return;
+  }
   e.respondWith(
     caches.match(e.request).then((hit) =>
       hit || fetch(e.request).then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(e.request, copy));
         return res;
-      }).catch(() => caches.match('./'))
+      })
     )
   );
 });
