@@ -194,11 +194,11 @@ main{padding:0 16px}
 .b-left .per{display:inline-block;font-size:11.5px;padding:2px 7px;margin-bottom:3px}
 .b-left .badge{font-size:9.5px;padding:2px 6px}
 .b-name{flex:1;min-width:0;font-weight:600;font-size:14px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.b-btns{display:flex;gap:6px;flex:none}
-.b-btns .mark-btn{flex:0 0 42px;min-height:42px;padding:0}
-.b-btns .mark-btn.edit-brow{flex:0 0 34px;border-color:transparent;color:var(--faint)}
+.b-btns{display:flex;gap:4px;flex:none}
+.b-btns .mark-btn{flex:0 0 38px;min-height:40px;padding:0}
+.b-btns .mark-btn.edit-brow{flex:0 0 28px;border-color:transparent;color:var(--faint)}
 .b-btns .mark-btn.edit-brow:hover{border-color:var(--border);color:var(--text);background:var(--surface-2)}
-.b-btns .mark-btn.edit-brow .ic{width:16px;height:16px}
+.b-btns .mark-btn.edit-brow .ic{width:15px;height:15px}
 .day-add-wrap{padding:7px 0 6px;text-align:center;border-top:1px dashed var(--border)}
 .day-add-btn{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--dim);padding:5px 12px;border-radius:999px;border:1px dashed var(--border);transition:all .12s}
 .day-add-btn:active{transform:scale(.96)}
@@ -275,7 +275,7 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .toast.ok{border-color:var(--ok)} .toast.bad{border-color:var(--bad)}
 .modal-wrap{position:fixed;inset:0;z-index:50;background:rgba(12,10,8,.62);display:flex;align-items:center;justify-content:center;padding:22px}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:20px;max-width:360px;width:100%;animation:viewIn .22s ease}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:20px;max-width:380px;width:100%;animation:viewIn .22s ease;max-height:90dvh;overflow-y:auto}
 .modal h3{font-size:17px;margin-bottom:6px}
 .modal p{font-size:14px;color:var(--dim);line-height:1.5}
 .modal-form{margin-top:12px;display:flex;flex-direction:column;gap:10px}
@@ -288,6 +288,21 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .modal-form .form-grid>div{flex:1;min-width:0}
 .m-actions{display:flex;gap:10px;margin-top:18px}
 .m-actions .btn{flex:1}
+
+.scope-wrap{display:flex;flex-direction:column;gap:6px;background:var(--surface-2);padding:10px 12px;border-radius:var(--radius-s);border:1px solid var(--border)}
+.scope-wrap label{font-size:11px;font-weight:700;color:var(--faint);letter-spacing:.06em;text-transform:uppercase}
+.scope-radios{display:flex;flex-direction:column;gap:6px}
+.scope-radio{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer}
+.scope-radio input{margin:0;accent-color:var(--accent);width:15px;height:15px}
+.swap-preview{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-s);padding:10px 12px;font-size:12.5px;line-height:1.5;color:var(--dim)}
+.swap-preview strong{color:var(--text)}
+.custom-sched-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--warn-bg);border:1px solid var(--warn);border-radius:var(--radius);padding:10px 14px}
+.cs-info{display:flex;align-items:center;gap:10px;min-width:0}
+.cs-info .ic{color:var(--warn);width:20px;height:20px}
+.cs-info b{font-size:13.5px;display:block;color:var(--text)}
+.cs-info span{font-size:11.5px;color:var(--dim)}
+.btn-xs{min-height:28px;padding:0 8px;font-size:11.5px;border-radius:6px}
+.btn-sm{min-height:36px;padding:0 12px;font-size:12.5px}
 
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -351,6 +366,8 @@ const DEFAULT_SCHEDULE = [
   /* Wednesday */ [ {s:1,e:2,c:'logic',t:'Lecture'}, {s:3,e:4,c:'math',t:'Tutorial'}, {s:6,e:6,c:'physics',t:'Lecture'} ],
   /* Thursday  */ [ {s:1,e:2,c:'physics',t:'Lab'}, {s:3,e:3,c:'english',t:'Lecture'}, {s:6,e:6,c:'logic',t:'Lecture'}, {s:7,e:8,c:'fitness',t:'Field'} ],
   /* Friday    */ [ {s:1,e:2,c:'english',t:'Lecture'}, {s:6,e:6,c:'sss',t:'Lecture'}, {s:7,e:8,c:'emerging',t:'Lecture'} ],
+  /* Saturday  */ [],
+  /* Sunday    */ [],
 ];
 
 /* =====================================================================
@@ -378,6 +395,7 @@ const ICONS = {
   minus:   '<path d="M5 12h14"/>',
   edit:    '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
   plus:    '<path d="M12 5v14M5 12h14"/>',
+  swap:    '<path d="M7 10h14l-4-4M17 14H3l4 4"/>',
 };
 const icon = (n, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
 
@@ -390,9 +408,18 @@ const todayKey = () => toKey(new Date());
 const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 const dowMon = d => (d.getDay() + 6) % 7;               // 0 = Monday … 6 = Sunday
+const dowName = dw => DOWS[(dw + 1) % 7];
 const fmtLong = d => `${DOWS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]}`;
 const fmtShort = d => `${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)}`;
 const fmtPct = p => p == null ? '—' : p.toFixed(1) + '%';
+
+function dateInSameWeek(refDateStr, targetDw) {
+  const d = fromKey(refDateStr);
+  if (!d) return refDateStr;
+  const currentDw = dowMon(d);
+  const diff = targetDw - currentDw;
+  return toKey(addDays(d, diff));
+}
 
 /* Strict date-key parser: also rejects impossible dates like 2025-02-30. */
 function fromKey(s) {
@@ -469,7 +496,20 @@ function sanitizeRecords(raw) {
         if (mv === 'A' || mv === 'M' || mv === 'N') { (r.marks || (r.marks = {}))[bk] = mv; marks++; }
       }
     }
-    if (r.holiday || marks) out[k] = r;
+    if (Array.isArray(v.customSchedule)) {
+      const sanitized = [];
+      for (const b of v.customSchedule) {
+        if (b && typeof b === 'object' && typeof b.c === 'string' && b.c.trim()) {
+          const s = Math.max(1, Math.min(12, Math.round(+b.s) || 1));
+          const e = Math.max(s, Math.min(12, Math.round(+b.e) || s));
+          const t = typeof b.t === 'string' && b.t.trim() ? b.t.trim() : 'Lecture';
+          sanitized.push({ s, e, c: b.c.trim(), t });
+        }
+      }
+      sanitized.sort((a, b) => a.s - b.s);
+      r.customSchedule = sanitized;
+    }
+    if (r.holiday || marks || r.customSchedule) out[k] = r;
   }
   return out;
 }
@@ -514,6 +554,13 @@ const bKey = (dw, b) => dw + '-' + b.s;          // stable id for a timetable bl
 const perLabel = b => b.e > b.s ? `P${b.s}\u2013${b.e}` : `P${b.s}`;
 const unitCount = b => settings.counting === 'sessions' ? 1 : (b.e - b.s + 1);
 
+function getDaySchedule(dateStr, dw) {
+  if (dateStr && state.records[dateStr] && Array.isArray(state.records[dateStr].customSchedule)) {
+    return state.records[dateStr].customSchedule;
+  }
+  return (state.schedule && state.schedule[dw]) || [];
+}
+
 /* =====================================================================
    4. Semester math & statistics engine
    ===================================================================== */
@@ -546,11 +593,11 @@ function computeStats() {
     for (let i = 0; ; i++) {
       const d = addDays(start, i);
       if (d > limit) break;
-      const dw = dowMon(d);
-      if (dw > 4) continue;
-      const rec = state.records[toKey(d)];
+      const dw = dowMon(d), key = toKey(d);
+      const rec = state.records[key];
       if (rec && rec.holiday) continue;
-      const dayBlocks = (state.schedule && state.schedule[dw]) || [];
+      const dayBlocks = getDaySchedule(key, dw);
+      if (!dayBlocks.length && dw > 4) continue;
       for (const b of dayBlocks) {
         if (!courses[b.c]) courses[b.c] = { held: 0, att: 0, miss: 0, noclass: 0 };
         const u = unitCount(b), c = courses[b.c];
@@ -587,10 +634,11 @@ function weekSummary(w) {
   const out = { att: 0, miss: 0, noclass: 0, unlogged: 0, hol: 0, units: 0 };
   for (let i = 0; i < 7; i++) {
     const d = addDays(start, i), dw = dowMon(d);
-    if (dw > 4) continue;
-    const rec = state.records[toKey(d)];
+    const key = toKey(d);
+    const rec = state.records[key];
     if (rec && rec.holiday) { out.hol++; continue; }
-    const dayBlocks = (state.schedule && state.schedule[dw]) || [];
+    const dayBlocks = getDaySchedule(key, dw);
+    if (!dayBlocks.length && dw > 4) continue;
     for (const b of dayBlocks) {
       const u = unitCount(b); out.units += u;
       const m = rec && rec.marks ? rec.marks[bKey(dw, b)] : null;
@@ -632,20 +680,50 @@ function openModal({ title, body, okLabel = 'OK', danger = false, onOk = null })
 function closeModal() { $('#modalWrap').hidden = true; modalOnOk = null; }
 
 let currentClassEdit = null;
-function openClassModal(dw, idx = null) {
-  currentClassEdit = { dw, idx };
+let currentSwapContext = null;
+
+function openClassModal(dw, idx = null, date = null) {
+  currentClassEdit = { dw, idx, date };
   const isEdit = idx !== null && idx >= 0;
-  const dayBlocks = (state.schedule && state.schedule[dw]) || [];
+  const dayBlocks = getDaySchedule(date, dw);
   const b = isEdit ? dayBlocks[idx] : { s: 1, e: 2, c: Object.keys(state.courses)[0] || '', t: 'Lecture' };
 
   const courseOpts = Object.entries(state.courses).map(([id, c]) =>
     `<option value="${esc(id)}"${b && b.c === id ? ' selected' : ''}>${esc(c.name)} (${esc(c.short)})</option>`
   ).join('');
 
+  const dayOptions = [0, 1, 2, 3, 4, 5, 6].map(d =>
+    `<option value="${d}"${d === dw ? ' selected' : ''}>${dowName(d)}</option>`
+  ).join('');
+
+  const isDateScope = !!date;
+
   $('#modalBox').innerHTML = `
     <h3 id="modalTitle">${isEdit ? 'Edit Class' : 'Add Class'}</h3>
-    <p style="font-size:12px;color:var(--faint)">${DOWS[(dw + 1) % 7]}</p>
     <form class="modal-form" id="classForm" onsubmit="return false;">
+      ${isDateScope ? `
+      <div class="scope-wrap">
+        <label>Apply change to</label>
+        <div class="scope-radios">
+          <label class="scope-radio">
+            <input type="radio" name="classScope" value="date" checked>
+            <span>This date only (${fmtShort(fromKey(date))})</span>
+          </label>
+          <label class="scope-radio">
+            <input type="radio" name="classScope" value="schedule">
+            <span>Every week (Timetable)</span>
+          </label>
+        </div>
+      </div>` : ''}
+
+      <div>
+        <label for="modalDay">Day</label>
+        <select id="modalDay">
+          ${dayOptions}
+        </select>
+        <div id="modalDayHint" style="font-size:11.5px;color:var(--faint);margin-top:4px"></div>
+      </div>
+
       <div>
         <label for="modalCourse">Course</label>
         <select id="modalCourse">
@@ -666,22 +744,28 @@ function openClassModal(dw, idx = null) {
       <div class="form-grid">
         <div>
           <label for="modalStart">Start Period</label>
-          <input type="number" id="modalStart" min="1" max="12" step="1" value="${b.s}">
+          <input type="number" id="modalStart" min="1" max="12" step="1" value="${b ? b.s : 1}">
         </div>
         <div>
           <label for="modalEnd">End Period</label>
-          <input type="number" id="modalEnd" min="1" max="12" step="1" value="${b.e}">
+          <input type="number" id="modalEnd" min="1" max="12" step="1" value="${b ? b.e : 2}">
         </div>
       </div>
       <div>
         <label for="modalType">Session Type</label>
         <select id="modalType">
-          <option value="Lecture"${b.t === 'Lecture' ? ' selected' : ''}>Lecture</option>
-          <option value="Lab"${b.t === 'Lab' ? ' selected' : ''}>Lab</option>
-          <option value="Tutorial"${b.t === 'Tutorial' ? ' selected' : ''}>Tutorial</option>
-          <option value="Field"${b.t === 'Field' ? ' selected' : ''}>Field</option>
+          <option value="Lecture"${b && b.t === 'Lecture' ? ' selected' : ''}>Lecture</option>
+          <option value="Lab"${b && b.t === 'Lab' ? ' selected' : ''}>Lab</option>
+          <option value="Tutorial"${b && b.t === 'Tutorial' ? ' selected' : ''}>Tutorial</option>
+          <option value="Field"${b && b.t === 'Field' ? ' selected' : ''}>Field</option>
         </select>
       </div>
+      ${isEdit ? `
+      <div>
+        <button type="button" class="btn wide" style="min-height:40px;font-size:13px;border-style:dashed;color:var(--dim)" data-action="class-swap-from-modal">
+          ${icon('swap')} Swap with another class...
+        </button>
+      </div>` : ''}
       <div class="m-actions">
         ${isEdit ? `<button type="button" class="btn btn-danger" data-action="class-delete">Delete</button>` : ''}
         <button type="button" class="btn" data-action="modal-close">Cancel</button>
@@ -694,13 +778,47 @@ function openClassModal(dw, idx = null) {
   sel.addEventListener('change', () => {
     $('#newCourseFields').hidden = sel.value !== '__new__';
   });
+
+  const daySel = $('#modalDay');
+  const scopeRadios = document.querySelectorAll('input[name="classScope"]');
+  const updateDayHint = () => {
+    const hint = $('#modalDayHint');
+    if (!hint) return;
+    const targetDw = parseInt(daySel.value, 10);
+    const scopeVal = $('input[name="classScope"]:checked') ? $('input[name="classScope"]:checked').value : (date ? 'date' : 'schedule');
+    if (scopeVal === 'date' && date) {
+      const targetDate = dateInSameWeek(date, targetDw);
+      if (targetDw !== dw) {
+        hint.textContent = `Will move to ${fmtLong(fromKey(targetDate))}`;
+        hint.style.color = 'var(--accent)';
+      } else {
+        hint.textContent = `On ${fmtLong(fromKey(date))}`;
+        hint.style.color = 'var(--faint)';
+      }
+    } else {
+      if (targetDw !== dw) {
+        hint.textContent = `Will move from ${dowName(dw)} to ${dowName(targetDw)} in regular timetable`;
+        hint.style.color = 'var(--accent)';
+      } else {
+        hint.textContent = `Scheduled on every ${dowName(dw)}`;
+        hint.style.color = 'var(--faint)';
+      }
+    }
+  };
+  daySel.addEventListener('change', updateDayHint);
+  scopeRadios.forEach(r => r.addEventListener('change', updateDayHint));
+  updateDayHint();
 }
 
 function saveClassFromModal() {
   if (!currentClassEdit) return;
-  const { dw, idx } = currentClassEdit;
-  if (!state.schedule[dw]) state.schedule[dw] = [];
+  const { dw: oldDw, idx, date } = currentClassEdit;
+  const isEdit = idx !== null && idx >= 0;
 
+  const scopeRadio = $('input[name="classScope"]:checked');
+  const scope = (scopeRadio && scopeRadio.value) ? scopeRadio.value : (date ? 'date' : 'schedule');
+
+  const newDw = parseInt($('#modalDay').value, 10);
   const courseSel = $('#modalCourse').value;
   let courseId = courseSel;
   if (courseSel === '__new__') {
@@ -716,29 +834,82 @@ function saveClassFromModal() {
   const t = $('#modalType').value || 'Lecture';
   const newBlock = { s, e, c: courseId, t };
 
-  const isEdit = idx !== null && idx >= 0;
-  if (isEdit) {
-    const oldBlock = state.schedule[dw][idx];
-    const oldKey = bKey(dw, oldBlock);
-    const newKey = bKey(dw, newBlock);
-    state.schedule[dw][idx] = newBlock;
+  if (scope === 'schedule') {
+    if (!state.schedule[newDw]) state.schedule[newDw] = [];
+    if (!state.schedule[oldDw]) state.schedule[oldDw] = [];
 
-    // Migrate attendance records if start period changed
-    if (oldKey !== newKey) {
-      for (const [dateStr, rec] of Object.entries(state.records)) {
-        const d = fromKey(dateStr);
-        if (!d || dowMon(d) !== dw) continue;
-        if (rec.marks && rec.marks[oldKey]) {
-          rec.marks[newKey] = rec.marks[oldKey];
-          delete rec.marks[oldKey];
+    if (isEdit) {
+      const oldBlock = state.schedule[oldDw][idx];
+      const oldKey = oldBlock ? bKey(oldDw, oldBlock) : null;
+      const newKey = bKey(newDw, newBlock);
+
+      if (newDw === oldDw) {
+        state.schedule[oldDw][idx] = newBlock;
+      } else {
+        state.schedule[oldDw].splice(idx, 1);
+        state.schedule[newDw].push(newBlock);
+      }
+
+      if (oldKey && oldKey !== newKey) {
+        for (const [dateStr, rec] of Object.entries(state.records)) {
+          const d = fromKey(dateStr);
+          if (!d) continue;
+          if (dowMon(d) === oldDw && rec.marks && rec.marks[oldKey]) {
+            if (newDw !== oldDw) {
+              const targetDateStr = dateInSameWeek(dateStr, newDw);
+              let targetRec = state.records[targetDateStr];
+              if (!targetRec) targetRec = state.records[targetDateStr] = {};
+              if (!targetRec.marks) targetRec.marks = {};
+              targetRec.marks[newKey] = rec.marks[oldKey];
+              delete rec.marks[oldKey];
+              if (!rec.holiday && !rec.customSchedule && Object.keys(rec.marks).length === 0) delete state.records[dateStr];
+            } else {
+              rec.marks[newKey] = rec.marks[oldKey];
+              delete rec.marks[oldKey];
+            }
+          }
         }
       }
+    } else {
+      state.schedule[newDw].push(newBlock);
     }
+    state.schedule[newDw].sort((a, b) => a.s - b.s);
+    if (newDw !== oldDw) state.schedule[oldDw].sort((a, b) => a.s - b.s);
   } else {
-    state.schedule[dw].push(newBlock);
+    // This date only
+    if (!date) return;
+    const srcDateStr = date;
+    const targetDateStr = (newDw === oldDw) ? date : dateInSameWeek(date, newDw);
+
+    let srcRec = state.records[srcDateStr];
+    if (!srcRec) srcRec = state.records[srcDateStr] = {};
+    if (!Array.isArray(srcRec.customSchedule)) {
+      srcRec.customSchedule = JSON.parse(JSON.stringify(getDaySchedule(srcDateStr, oldDw)));
+    }
+
+    if (newDw === oldDw) {
+      if (isEdit) {
+        srcRec.customSchedule[idx] = newBlock;
+      } else {
+        srcRec.customSchedule.push(newBlock);
+      }
+      srcRec.customSchedule.sort((a, b) => a.s - b.s);
+    } else {
+      if (isEdit) {
+        srcRec.customSchedule.splice(idx, 1);
+      }
+      srcRec.customSchedule.sort((a, b) => a.s - b.s);
+
+      let dstRec = (srcDateStr === targetDateStr) ? srcRec : state.records[targetDateStr];
+      if (!dstRec) dstRec = state.records[targetDateStr] = {};
+      if (!Array.isArray(dstRec.customSchedule)) {
+        dstRec.customSchedule = JSON.parse(JSON.stringify(getDaySchedule(targetDateStr, newDw)));
+      }
+      dstRec.customSchedule.push(newBlock);
+      dstRec.customSchedule.sort((a, b) => a.s - b.s);
+    }
   }
 
-  state.schedule[dw].sort((a, b) => a.s - b.s);
   save();
   closeModal();
   renderCurrent();
@@ -747,20 +918,38 @@ function saveClassFromModal() {
 
 function deleteClassFromModal() {
   if (!currentClassEdit) return;
-  const { dw, idx } = currentClassEdit;
-  if (idx === null || idx < 0 || !state.schedule[dw] || !state.schedule[dw][idx]) return;
+  const { dw, idx, date } = currentClassEdit;
+  if (idx === null || idx < 0) return;
 
-  const oldBlock = state.schedule[dw][idx];
-  const oldKey = bKey(dw, oldBlock);
-  state.schedule[dw].splice(idx, 1);
+  const scopeRadio = $('input[name="classScope"]:checked');
+  const scope = (scopeRadio && scopeRadio.value) ? scopeRadio.value : (date ? 'date' : 'schedule');
 
-  // Clean up any logged marks for this block
-  for (const [dateStr, rec] of Object.entries(state.records)) {
-    const d = fromKey(dateStr);
-    if (!d || dowMon(d) !== dw) continue;
-    if (rec.marks && rec.marks[oldKey]) {
-      delete rec.marks[oldKey];
-      if (!rec.holiday && Object.keys(rec.marks).length === 0) delete state.records[dateStr];
+  if (scope === 'schedule') {
+    if (!state.schedule[dw] || !state.schedule[dw][idx]) return;
+    const oldBlock = state.schedule[dw][idx];
+    const oldKey = bKey(dw, oldBlock);
+    state.schedule[dw].splice(idx, 1);
+
+    for (const [dateStr, rec] of Object.entries(state.records)) {
+      const d = fromKey(dateStr);
+      if (!d || dowMon(d) !== dw) continue;
+      if (rec.marks && rec.marks[oldKey]) {
+        delete rec.marks[oldKey];
+        if (!rec.holiday && !rec.customSchedule && Object.keys(rec.marks).length === 0) delete state.records[dateStr];
+      }
+    }
+  } else {
+    if (!date) return;
+    let rec = state.records[date];
+    if (!rec) rec = state.records[date] = {};
+    if (!Array.isArray(rec.customSchedule)) {
+      rec.customSchedule = JSON.parse(JSON.stringify(getDaySchedule(date, dw)));
+    }
+    const oldBlock = rec.customSchedule[idx];
+    if (oldBlock) {
+      const oldKey = bKey(dw, oldBlock);
+      rec.customSchedule.splice(idx, 1);
+      if (rec.marks && rec.marks[oldKey]) delete rec.marks[oldKey];
     }
   }
 
@@ -768,6 +957,202 @@ function deleteClassFromModal() {
   closeModal();
   renderCurrent();
   toast('Class removed', 'ok');
+}
+
+function openSwapModal(dw, idx, date = null) {
+  if (idx === null || idx < 0) return;
+  const srcBlocks = getDaySchedule(date, dw);
+  const srcBlock = srcBlocks[idx];
+  if (!srcBlock) return;
+
+  currentSwapContext = { dw, idx, date };
+  const isDateScope = !!date;
+  const srcCrs = state.courses[srcBlock.c] || { name: srcBlock.c, short: srcBlock.c.toUpperCase() };
+
+  // Collect candidate classes to swap with
+  const candidates = [];
+  for (let d = 0; d < 7; d++) {
+    const candDate = date ? dateInSameWeek(date, d) : null;
+    const dayBlocks = getDaySchedule(candDate, d);
+    dayBlocks.forEach((b, i) => {
+      if (d === dw && i === idx) return; // skip self
+      const crs = state.courses[b.c] || { name: b.c, short: b.c.toUpperCase() };
+      candidates.push({
+        dw: d,
+        idx: i,
+        block: b,
+        date: candDate,
+        label: `${dowName(d)} ${perLabel(b)} · ${crs.name} (${crs.short})`
+      });
+    });
+  }
+
+  if (candidates.length === 0) {
+    toast('No other classes scheduled to swap with', 'bad');
+    return;
+  }
+
+  const targetOpts = candidates.map((cand, i) =>
+    `<option value="${cand.dw}_${cand.idx}"${i === 0 ? ' selected' : ''}>${esc(cand.label)}</option>`
+  ).join('');
+
+  $('#modalBox').innerHTML = `
+    <h3 id="modalTitle">Swap Class</h3>
+    <p style="font-size:13px;color:var(--dim);margin-bottom:8px">
+      Class: <strong style="color:var(--text)">${dowName(dw)} ${perLabel(srcBlock)} · ${esc(srcCrs.name)}</strong>
+    </p>
+
+    <form class="modal-form" id="swapForm" onsubmit="return false;">
+      ${isDateScope ? `
+      <div class="scope-wrap">
+        <label>Apply swap to</label>
+        <div class="scope-radios">
+          <label class="scope-radio">
+            <input type="radio" name="swapScope" value="date" checked>
+            <span>This week only</span>
+          </label>
+          <label class="scope-radio">
+            <input type="radio" name="swapScope" value="schedule">
+            <span>Every week (Timetable)</span>
+          </label>
+        </div>
+      </div>` : ''}
+
+      <div>
+        <label for="swapTarget">Swap with</label>
+        <select id="swapTarget">
+          ${targetOpts}
+        </select>
+      </div>
+
+      <div>
+        <label for="swapType">Swap method</label>
+        <select id="swapType">
+          <option value="courses" selected>Swap subjects (keeps timetable periods)</option>
+          <option value="slots">Swap time slots (exchanges periods)</option>
+        </select>
+      </div>
+
+      <div class="swap-preview" id="swapPreview"></div>
+
+      <div class="m-actions">
+        <button type="button" class="btn" data-action="modal-close">Cancel</button>
+        <button type="button" class="btn btn-accent" data-action="swap-confirm">${icon('swap')} Swap Classes</button>
+      </div>
+    </form>`;
+
+  $('#modalWrap').hidden = false;
+
+  const updatePreview = () => {
+    const val = $('#swapTarget').value;
+    if (!val) return;
+    const [tDw, tIdx] = val.split('_').map(Number);
+    const swapType = $('#swapType').value;
+    const cand = candidates.find(c => c.dw === tDw && c.idx === tIdx);
+    if (!cand) return;
+
+    const tBlock = cand.block;
+    const tCrs = state.courses[tBlock.c] || { name: tBlock.c, short: tBlock.c.toUpperCase() };
+
+    let line1 = '', line2 = '';
+    if (swapType === 'courses') {
+      line1 = `<strong>${dowName(dw)} ${perLabel(srcBlock)}:</strong> ${esc(tCrs.name)} (${esc(tBlock.t)})`;
+      line2 = `<strong>${dowName(tDw)} ${perLabel(tBlock)}:</strong> ${esc(srcCrs.name)} (${esc(srcBlock.t)})`;
+    } else {
+      line1 = `<strong>${dowName(dw)} ${perLabel(tBlock)}:</strong> ${esc(tCrs.name)} (${esc(tBlock.t)})`;
+      line2 = `<strong>${dowName(tDw)} ${perLabel(srcBlock)}:</strong> ${esc(srcCrs.name)} (${esc(srcBlock.t)})`;
+    }
+
+    $('#swapPreview').innerHTML = `
+      <div style="font-size:11px;font-weight:700;color:var(--faint);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Result preview</div>
+      <div>• ${line1}</div>
+      <div style="margin-top:3px">• ${line2}</div>
+    `;
+  };
+
+  $('#swapTarget').addEventListener('change', updatePreview);
+  $('#swapType').addEventListener('change', updatePreview);
+  updatePreview();
+}
+
+function confirmSwap() {
+  if (!currentSwapContext) return;
+  const { dw: srcDw, idx: srcIdx, date } = currentSwapContext;
+  const val = $('#swapTarget').value;
+  if (!val) return;
+  const [dstDw, dstIdx] = val.split('_').map(Number);
+  const swapType = $('#swapType').value;
+
+  const scopeRadio = $('input[name="swapScope"]:checked');
+  const scope = (scopeRadio && scopeRadio.value) ? scopeRadio.value : (date ? 'date' : 'schedule');
+
+  if (scope === 'schedule') {
+    const srcList = state.schedule[srcDw];
+    const dstList = state.schedule[dstDw];
+    if (!srcList || !srcList[srcIdx] || !dstList || !dstList[dstIdx]) return;
+
+    const b1 = srcList[srcIdx];
+    const b2 = dstList[dstIdx];
+
+    if (swapType === 'courses') {
+      const tmpC = b1.c, tmpT = b1.t;
+      b1.c = b2.c; b1.t = b2.t;
+      b2.c = tmpC; b2.t = tmpT;
+    } else {
+      if (srcDw === dstDw) {
+        srcList[srcIdx] = b2;
+        srcList[dstIdx] = b1;
+        srcList.sort((a, b) => a.s - b.s);
+      } else {
+        srcList[srcIdx] = b2;
+        dstList[dstIdx] = b1;
+        srcList.sort((a, b) => a.s - b.s);
+        dstList.sort((a, b) => a.s - b.s);
+      }
+    }
+  } else {
+    if (!date) return;
+    const srcDateStr = dateInSameWeek(date, srcDw);
+    const dstDateStr = dateInSameWeek(date, dstDw);
+
+    let srcRec = state.records[srcDateStr];
+    if (!srcRec) srcRec = state.records[srcDateStr] = {};
+    if (!Array.isArray(srcRec.customSchedule)) {
+      srcRec.customSchedule = JSON.parse(JSON.stringify(getDaySchedule(srcDateStr, srcDw)));
+    }
+
+    let dstRec = (srcDateStr === dstDateStr) ? srcRec : state.records[dstDateStr];
+    if (!dstRec) dstRec = state.records[dstDateStr] = {};
+    if (!Array.isArray(dstRec.customSchedule)) {
+      dstRec.customSchedule = JSON.parse(JSON.stringify(getDaySchedule(dstDateStr, dstDw)));
+    }
+
+    const b1 = srcRec.customSchedule[srcIdx];
+    const b2 = dstRec.customSchedule[dstIdx];
+    if (!b1 || !b2) return;
+
+    if (swapType === 'courses') {
+      const tmpC = b1.c, tmpT = b1.t;
+      b1.c = b2.c; b1.t = b2.t;
+      b2.c = tmpC; b2.t = tmpT;
+    } else {
+      if (srcDateStr === dstDateStr) {
+        srcRec.customSchedule[srcIdx] = b2;
+        srcRec.customSchedule[dstIdx] = b1;
+        srcRec.customSchedule.sort((a, b) => a.s - b.s);
+      } else {
+        srcRec.customSchedule[srcIdx] = b2;
+        dstRec.customSchedule[dstIdx] = b1;
+        srcRec.customSchedule.sort((a, b) => a.s - b.s);
+        dstRec.customSchedule.sort((a, b) => a.s - b.s);
+      }
+    }
+  }
+
+  save();
+  closeModal();
+  renderCurrent();
+  toast('Classes swapped successfully', 'ok');
 }
 
 const setViewHTML = (section, html) => { section.innerHTML = `<div class="vin">${html}</div>`; };
@@ -799,7 +1184,8 @@ function renderHeader() {
 function renderToday() {
   const key = ui.date, d = fromKey(key), dw = dowMon(d);
   const rec = state.records[key] || {};
-  const blocks = (state.schedule && state.schedule[dw]) || [];
+  const blocks = getDaySchedule(key, dw);
+  const hasCustom = Array.isArray(rec.customSchedule);
   const hol = !!rec.holiday;
   const wk = weekOf(d);
 
@@ -820,7 +1206,8 @@ function renderToday() {
               <span class="badge">${esc(b.t)}</span>
               <div class="cls-top-actions">
                 <span class="code">${esc(crs.short)}</span>
-                <button class="cls-edit-btn" data-action="class-edit" data-dw="${dw}" data-idx="${idx}" aria-label="Edit class">${icon('edit')}</button>
+                <button class="cls-edit-btn" data-action="class-swap" data-dw="${dw}" data-idx="${idx}" data-date="${key}" aria-label="Swap class" title="Swap with another class">${icon('swap')}</button>
+                <button class="cls-edit-btn" data-action="class-edit" data-dw="${dw}" data-idx="${idx}" data-date="${key}" aria-label="Edit class" title="Edit class">${icon('edit')}</button>
               </div>
             </div>
             <h3 class="cls-name">${esc(crs.name)}</h3>
@@ -845,20 +1232,33 @@ function renderToday() {
       ${key !== todayKey() ? `<button class="chip-btn" data-action="goto-today">Today</button>` : ''}
     </div>
     ${note ? `<div class="note">${icon('alert')}<span>${note}</span></div>` : ''}
+    ${hasCustom ? `
+    <div class="custom-sched-banner">
+      <div class="cs-info">
+        ${icon('sliders')}
+        <div>
+          <b>Custom schedule for today</b>
+          <span>Classes were swapped or customized specifically for this date</span>
+        </div>
+      </div>
+      <button class="chip-btn btn-sm" data-action="day-sched-reset" data-date="${key}">Reset</button>
+    </div>` : ''}
     ${blocks.length ? `
     <div class="hol-card ${hol ? 'is-hol' : ''}">
       <div class="hol-info">${icon('slash')}<div><b>No class today</b><span>Exclude this date from all totals</span></div></div>
       <button class="hol-btn ${hol ? 'on' : ''}" data-action="holiday" data-date="${key}" aria-pressed="${hol}">${hol ? 'Undo' : 'Mark'}</button>
     </div>` : ''}
     ${body}
-    ${!hol ? `<div style="text-align:center;padding:4px 0 8px"><button class="day-add-btn" data-action="class-add" data-dw="${dw}">${icon('plus')}Add class to ${DOWS[d.getDay()]}</button></div>` : ''}
+    ${!hol ? `<div style="text-align:center;padding:4px 0 8px"><button class="day-add-btn" data-action="class-add" data-dw="${dw}" data-date="${key}">${icon('plus')}Add class to ${DOWS[d.getDay()]}</button></div>` : ''}
     ${!hol && blocks.length ? `<p class="tally" id="dayTally">${todayTallyText()}</p>` : ''}
   `);
 }
 
 function todayTallyText() {
-  const dw = dowMon(fromKey(ui.date));
-  const blocks = (state.schedule && state.schedule[dw]) || [];
+  const d = fromKey(ui.date);
+  if (!d) return '';
+  const dw = dowMon(d);
+  const blocks = getDaySchedule(ui.date, dw);
   if (!blocks.length) return '';
   const marked = blocks.filter(b => currentMark(ui.date, bKey(dw, b))).length;
   return `${marked} of ${blocks.length} classes logged for this day`;
@@ -876,7 +1276,13 @@ function renderWeek() {
 
   const opts = Array.from({ length: settings.weeks }, (_, i) =>
     `<option value="${i + 1}"${i + 1 === ui.week ? ' selected' : ''}>Week ${i + 1}</option>`).join('');
-  const days = [0, 1, 2, 3, 4].map(i => daySection(addDays(start, i))).join('');
+  const days = [0, 1, 2, 3, 4, 5, 6].filter(i => {
+    if (i < 5) return true;
+    const dKey = toKey(addDays(start, i));
+    const sched = state.schedule && state.schedule[i];
+    const rec = state.records[dKey];
+    return (sched && sched.length > 0) || (rec && Array.isArray(rec.customSchedule) && rec.customSchedule.length > 0);
+  }).map(i => daySection(addDays(start, i))).join('');
 
   setViewHTML($('#view-week'), `
     <div class="week-head">
@@ -899,7 +1305,8 @@ function daySection(d) {
   const key = toKey(d), dw = dowMon(d);
   const rec = state.records[key] || {};
   const hol = !!rec.holiday;
-  const dayBlocks = (state.schedule && state.schedule[dw]) || [];
+  const dayBlocks = getDaySchedule(key, dw);
+  const hasCustom = Array.isArray(rec.customSchedule);
   const rows = hol
     ? `<p class="day-note">Marked as no-class — excluded from all totals.</p>`
     : dayBlocks.map((b, idx) => {
@@ -913,18 +1320,26 @@ function daySection(d) {
             <button class="mark-btn att ${st === 'A' ? 'on' : ''}" data-action="mark" data-date="${key}" data-block="${k}" data-val="A" aria-label="Mark ${esc(crs.name)} attended" aria-pressed="${st === 'A'}">${icon('check')}</button>
             <button class="mark-btn miss ${st === 'M' ? 'on' : ''}" data-action="mark" data-date="${key}" data-block="${k}" data-val="M" aria-label="Mark ${esc(crs.name)} missed" aria-pressed="${st === 'M'}">${icon('x')}</button>
             <button class="mark-btn noclass ${st === 'N' ? 'on' : ''}" data-action="mark" data-date="${key}" data-block="${k}" data-val="N" aria-label="Mark ${esc(crs.name)} no class" aria-pressed="${st === 'N'}">${icon('minus')}</button>
-            <button class="mark-btn edit-brow" data-action="class-edit" data-dw="${dw}" data-idx="${idx}" aria-label="Edit ${esc(crs.name)}" title="Edit class">${icon('edit')}</button>
+            <button class="mark-btn edit-brow" data-action="class-swap" data-dw="${dw}" data-idx="${idx}" data-date="${key}" aria-label="Swap ${esc(crs.name)}" title="Swap class">${icon('swap')}</button>
+            <button class="mark-btn edit-brow" data-action="class-edit" data-dw="${dw}" data-idx="${idx}" data-date="${key}" aria-label="Edit ${esc(crs.name)}" title="Edit class">${icon('edit')}</button>
           </div>
         </div>`;
       }).join('');
   return `
     <section class="day ${hol ? 'is-hol' : ''}">
       <header class="day-head">
-        <div><span class="day-name">${DOWS[d.getDay()]}</span><span class="day-date">${fmtShort(d)}</span></div>
-        <button class="hol-btn ${hol ? 'on' : ''}" data-action="holiday" data-date="${key}" aria-pressed="${hol}" title="Toggle no-class day">${icon('slash')}${hol ? 'Undo' : 'No class'}</button>
+        <div>
+          <span class="day-name">${DOWS[d.getDay()]}</span>
+          <span class="day-date">${fmtShort(d)}</span>
+          ${hasCustom ? `<span class="badge" style="margin-left:6px;border-color:var(--warn);color:var(--warn)">Custom</span>` : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          ${hasCustom ? `<button class="chip-btn btn-xs" data-action="day-sched-reset" data-date="${key}" title="Reset to regular timetable">Reset</button>` : ''}
+          <button class="hol-btn ${hol ? 'on' : ''}" data-action="holiday" data-date="${key}" aria-pressed="${hol}" title="Toggle no-class day">${icon('slash')}${hol ? 'Undo' : 'No class'}</button>
+        </div>
       </header>
       ${rows}
-      ${!hol ? `<div class="day-add-wrap"><button class="day-add-btn" data-action="class-add" data-dw="${dw}">${icon('plus')}Add class</button></div>` : ''}
+      ${!hol ? `<div class="day-add-wrap"><button class="day-add-btn" data-action="class-add" data-dw="${dw}" data-date="${key}">${icon('plus')}Add class</button></div>` : ''}
     </section>`;
 }
 
@@ -1112,7 +1527,7 @@ function toggleHoliday(key) {
   const rec = state.records[key];
   if (rec && rec.holiday) {
     delete rec.holiday;
-    if (!rec.marks || !Object.keys(rec.marks).length) delete state.records[key];
+    if (!rec.customSchedule && (!rec.marks || !Object.keys(rec.marks).length)) delete state.records[key];
   } else {
     (state.records[key] || (state.records[key] = {})).holiday = true;
   }
@@ -1181,7 +1596,7 @@ const actions = {
     if (!rec.marks) rec.marks = {};
     if (rec.marks[block] === val) {                      // tapping the active button clears the mark
       delete rec.marks[block];
-      if (!rec.holiday && Object.keys(rec.marks).length === 0) delete state.records[date];
+      if (!rec.holiday && !rec.customSchedule && Object.keys(rec.marks).length === 0) delete state.records[date];
     } else {
       rec.marks[block] = val;                            // tapping the other button switches it
     }
@@ -1209,7 +1624,7 @@ const actions = {
   'class-delete'() {
     openModal({
       title: 'Delete this class?',
-      body: 'This removes this scheduled class block. Any marks logged for it will be removed.',
+      body: 'This removes this scheduled class block.',
       okLabel: 'Delete class',
       danger: true,
       onOk: deleteClassFromModal,
@@ -1218,11 +1633,45 @@ const actions = {
   'class-edit'(el) {
     const dw = parseInt(el.dataset.dw, 10);
     const idx = parseInt(el.dataset.idx, 10);
-    openClassModal(dw, idx);
+    const date = el.dataset.date || null;
+    openClassModal(dw, idx, date);
   },
   'class-add'(el) {
     const dw = parseInt(el.dataset.dw, 10);
-    openClassModal(dw, null);
+    const date = el.dataset.date || null;
+    openClassModal(dw, null, date);
+  },
+  'class-swap'(el) {
+    const dw = parseInt(el.dataset.dw, 10);
+    const idx = parseInt(el.dataset.idx, 10);
+    const date = el.dataset.date || null;
+    openSwapModal(dw, idx, date);
+  },
+  'class-swap-from-modal'() {
+    if (!currentClassEdit) return;
+    const { dw, idx, date } = currentClassEdit;
+    openSwapModal(dw, idx, date);
+  },
+  'swap-confirm'() {
+    confirmSwap();
+  },
+  'day-sched-reset'(el) {
+    const date = el.dataset.date;
+    if (!date || !state.records[date]) return;
+    openModal({
+      title: 'Reset schedule for this day?',
+      body: 'This reverts this day back to your regular weekly timetable.',
+      okLabel: 'Reset',
+      onOk() {
+        delete state.records[date].customSchedule;
+        if (!state.records[date].holiday && (!state.records[date].marks || Object.keys(state.records[date].marks).length === 0)) {
+          delete state.records[date];
+        }
+        save();
+        renderCurrent();
+        toast('Schedule reset to regular timetable', 'ok');
+      }
+    });
   },
 };
 

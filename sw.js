@@ -1,5 +1,5 @@
 /* sw.js — offline cache for NS-3 Attendance. Save beside index.html. */
-const CACHE = 'ns3-attendance-v2';
+const CACHE = 'ns3-attendance-v3';
 const ASSETS = ['./', './index.html'];
 
 self.addEventListener('install', (e) => {
